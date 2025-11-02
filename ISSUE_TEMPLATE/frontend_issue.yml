@@ -1,0 +1,39 @@
+name: Frontend issue
+description: Use this template for issues affecting `topstepx_frontend` (UI, types, build)
+title: "[frontend] {{summary}}"
+labels: frontend, area:frontend
+body:
+  - type: markdown
+    attributes:
+      value: "Please use this template for frontend-specific bugs or improvements."
+  - id: summary
+    type: input
+    attributes:
+      label: Short summary
+      required: true
+  - id: browser
+    type: input
+    attributes:
+      label: Browser / environment
+      description: e.g., Chrome 123, Node 20, macOS 14
+  - id: steps
+    type: textarea
+    attributes:
+      label: Steps to reproduce
+  - id: expected
+    type: textarea
+    attributes:
+      label: Expected behavior
+  - id: actual
+    type: textarea
+    attributes:
+      label: Actual behavior
+  - id: agent
+    type: dropdown
+    attributes:
+      label: Preferred agent to assist
+      options:
+        - none
+        - serena
+        - codex
+        - claude

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Pre-push: Warn about WIP commits being pushed
+set -e
+
+# Check if there are any WIP commits
+WIP_COMMITS=$(git log origin/main..HEAD --oneline 2>/dev/null | grep "^[a-f0-9]* WIP:" || true)
+
+if [ -n "$WIP_COMMITS" ]; then
+    echo ""
+    echo "⚠️  WARNING: You have WIP checkpoint commits that will be pushed:"
+    echo ""
+    echo "$WIP_COMMITS"
+    echo ""
+    echo "Consider squashing WIP commits before pushing:"
+    echo "  git rebase -i origin/main"
+    echo ""
+    echo "Or continue pushing as-is (checkpoints are harmless but clutters history)"
+    echo ""
+
+    if [ -t 0 ]; then
+        read -p "Continue with push? (y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Push cancelled. Squash WIP commits first."
+            exit 1
+        fi
+    fi
+fi
+
+exit 0

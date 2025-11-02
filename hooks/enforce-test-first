@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+# Local Hook: Enforce Test-First (TDD)
+# Ensures tests are written before implementation code
+#
+# Rules:
+# 1. Allow test-only commits (Red phase)
+# 2. Block commits with both new tests AND new implementation (should be separate)
+# 3. Allow implementation commits if corresponding tests already exist (Green phase)
+# 4. Warn if modifying production code without test changes
+
+set -euo pipefail
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Exit code
+EXIT_CODE=0
+
+# Get staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# Separate production and test files
+PRODUCTION_FILES=""
+TEST_FILES=""
+
+for file in $STAGED_FILES; do
+  # Skip non-Python/JS/TS files
+  if ! echo "$file" | grep -qE '\.(py|js|ts|tsx)$'; then
+    continue
+  fi
+
+  # Classify as test or production
+  if echo "$file" | grep -qE '(tests?/|__tests__/|\.test\.|\.spec\.|_test\.py|test_.*\.py)'; then
+    TEST_FILES="$TEST_FILES$file
+"
+  elif echo "$file" | grep -qE '^(topstepx_backend|topstepx_frontend/src)/'; then
+    # Exclude test directories
+    if ! echo "$file" | grep -qE '(tests?/|__tests__/)'; then
+      PRODUCTION_FILES="$PRODUCTION_FILES$file
+"
+    fi
+  fi
+done
+
+# Count files
+PROD_COUNT=$(echo "$PRODUCTION_FILES" | grep -c . || echo 0)
+TEST_COUNT=$(echo "$TEST_FILES" | grep -c . || echo 0)
+
+# Rule 1: Test-only commits are always OK (Red phase)
+if [ "$TEST_COUNT" -gt 0 ] && [ "$PROD_COUNT" -eq 0 ]; then
+  echo "✓ Test-First: Test-only commit (TDD Red phase)"
+  exit 0
+fi
+
+# Rule 2: Implementation-only commits need corresponding tests to exist
+if [ "$PROD_COUNT" -gt 0 ] && [ "$TEST_COUNT" -eq 0 ]; then
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  Test-First Validation"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+
+  # Check each production file for corresponding test
+  MISSING_TESTS=""
+
+  while IFS= read -r prod_file; do
+    [ -z "$prod_file" ] && continue
+
+    # Determine expected test file path
+    if echo "$prod_file" | grep -q "topstepx_backend/"; then
+      # Python backend: src/foo/bar.py → tests/foo/test_bar.py
+      TEST_PATH=$(echo "$prod_file" | sed 's|topstepx_backend/|topstepx_backend/tests/|' | sed 's|\.py$|_test.py|' | sed 's|/\([^/]*\)_test\.py$|/test_\1.py|')
+
+      # Also check for test_*.py pattern
+      TEST_PATH_ALT=$(echo "$prod_file" | sed 's|topstepx_backend/|topstepx_backend/tests/|' | sed 's|/\([^/]*\)\.py$|/test_\1.py|')
+    elif echo "$prod_file" | grep -q "topstepx_frontend/src/"; then
+      # Frontend: src/foo/bar.ts → src/foo/__tests__/bar.test.ts
+      TEST_PATH=$(echo "$prod_file" | sed 's|\([^/]*\)\.tsx\?$|__tests__/\1.test.ts|')
+
+      # Also check for adjacent .test.ts
+      TEST_PATH_ALT=$(echo "$prod_file" | sed 's|\.tsx\?$|.test.ts|')
+    else
+      continue
+    fi
+
+    # Check if test exists
+    if [ ! -f "$TEST_PATH" ] && [ ! -f "$TEST_PATH_ALT" ]; then
+      MISSING_TESTS="$MISSING_TESTS  • $prod_file
+    Expected: $TEST_PATH or $TEST_PATH_ALT
+"
+    fi
+  done <<< "$PRODUCTION_FILES"
+
+  if [ -n "$MISSING_TESTS" ]; then
+    echo "⚠️  Production code modified without corresponding tests:"
+    echo ""
+    echo "$MISSING_TESTS"
+    echo ""
+    echo "Test-Driven Development (TDD) workflow:"
+    echo "  1. Write tests FIRST (commit tests)"
+    echo "  2. Watch tests FAIL (Red phase)"
+    echo "  3. Implement code to make tests pass (commit implementation)"
+    echo "  4. Tests should now PASS (Green phase)"
+    echo ""
+    echo "To proceed:"
+    echo "  • If tests already exist elsewhere, this is OK"
+    echo "  • If this is refactoring with existing test coverage, this is OK"
+    echo "  • If new feature, write tests first in a separate commit"
+    echo ""
+
+    # STRICT mode: Block commit (DEFAULT)
+    if [ "${STRICT_TDD:-1}" = "1" ]; then
+      echo "❌ BLOCKED: STRICT_TDD=1 (default) requires tests for all production code"
+      echo ""
+      echo "To bypass (NOT RECOMMENDED): STRICT_TDD=0 git commit"
+      echo ""
+      exit 1
+    else
+      # WARN mode: Allow but warn (requires explicit STRICT_TDD=0)
+      echo "⚠️  WARNING: Proceeding without test changes (STRICT_TDD=0)"
+      echo ""
+    fi
+  else
+    echo "✓ Test-First: Corresponding tests exist"
+  fi
+
+  exit 0
+fi
+
+# Rule 3: Block commits with BOTH new tests AND new production code
+if [ "$PROD_COUNT" -gt 0 ] && [ "$TEST_COUNT" -gt 0 ]; then
+  # Check if any files are NEW (not just modified)
+  NEW_PROD=$(git diff --cached --name-only --diff-filter=A | grep -E '^(topstepx_backend|topstepx_frontend/src)/' | grep -vE '(tests?/|__tests__/)' || true)
+  NEW_TESTS=$(git diff --cached --name-only --diff-filter=A | grep -E '(tests?/|__tests__/|\.test\.|\.spec\.|_test\.py|test_.*\.py)' || true)
+
+  if [ -n "$NEW_PROD" ] && [ -n "$NEW_TESTS" ]; then
+    echo ""
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "  ❌ Test-First Violation"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo ""
+    echo "BLOCKED: Cannot commit new tests AND new implementation together"
+    echo ""
+    echo "New test files:"
+    echo "$NEW_TESTS" | sed 's/^/  • /'
+    echo ""
+    echo "New production files:"
+    echo "$NEW_PROD" | sed 's/^/  • /'
+    echo ""
+    echo "Test-Driven Development requires TWO commits:"
+    echo ""
+    echo "Commit 1 (Tests First - Red phase):"
+    echo "  git reset HEAD $NEW_PROD"
+    echo "  git commit -m 'test: add tests for [feature]'"
+    echo "  # Tests should FAIL"
+    echo ""
+    echo "Commit 2 (Implementation - Green phase):"
+    echo "  git add $NEW_PROD"
+    echo "  git commit -m 'feat: implement [feature]'"
+    echo "  # Tests should now PASS"
+    echo ""
+    echo "This ensures tests validate behavior, not just confirm implementation."
+    echo ""
+    exit 1
+  else
+    # Modifying existing tests + existing production = OK (refactoring)
+    echo "✓ Test-First: Modifying existing tests and production (OK)"
+    exit 0
+  fi
+fi
+
+# Default: Allow
+exit 0

@@ -1,0 +1,45 @@
+name: Backend issue
+description: Use this template for issues affecting `topstepx_backend` (server, API, services).
+title: "[backend] {{summary}}"
+labels: backend, area:backend
+body:
+  - type: markdown
+    attributes:
+      value: "Please fill out the following information to help triage backend issues."
+  - id: summary
+    type: input
+    attributes:
+      label: Short summary
+      description: One-line summary for the issue title
+      required: true
+  - id: severity
+    type: dropdown
+    attributes:
+      label: Severity
+      description: How bad is the problem for users/dev workflow?
+      options:
+        - blocker
+        - critical
+        - major
+        - minor
+      required: true
+  - id: agent
+    type: dropdown
+    attributes:
+      label: Preferred agent to assist
+      description: Select an automated agent to seed the issue (optional).
+      options:
+        - none
+        - serena
+        - codex
+        - claude
+  - id: reproduction
+    type: textarea
+    attributes:
+      label: Reproduction steps
+      description: Steps to reproduce, expected vs actual behaviour, logs, stack traces.
+  - id: additional
+    type: textarea
+    attributes:
+      label: Additional context
+      description: Links to PRs, related issues, or notes.

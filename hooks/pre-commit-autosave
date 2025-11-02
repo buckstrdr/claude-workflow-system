@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Auto-save checkpoint system
+# This hook can be called manually or integrated into your editor
+
+set -e
+
+# Check if we're in a WIP commit (avoid recursion)
+if git log -1 --pretty=%B 2>/dev/null | grep -q "^WIP:"; then
+    exit 0
+fi
+
+# Get list of changed files
+CHANGED=$(git diff --name-only)
+STAGED=$(git diff --cached --name-only)
+
+if [ -z "$CHANGED" ] && [ -z "$STAGED" ]; then
+    echo "✓ No changes to auto-save"
+    exit 0
+fi
+
+# Show what we're saving
+echo ""
+echo "🔄 AUTO-SAVE: Creating checkpoint commit..."
+echo ""
+
+if [ -n "$CHANGED" ]; then
+    echo "Modified files:"
+    echo "$CHANGED" | sed 's/^/  - /'
+fi
+
+if [ -n "$STAGED" ]; then
+    echo "Staged files:"
+    echo "$STAGED" | sed 's/^/  - /'
+fi
+
+exit 0

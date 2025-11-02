@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Auto-enhance commit messages with issue numbers and suggestions
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+
+# Skip if amending, merging, or message provided via -m
+if [ "$COMMIT_SOURCE" = "message" ] || [ "$COMMIT_SOURCE" = "merge" ]; then
+    exit 0
+fi
+
+# Extract issue number from branch name
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
+ISSUE=$(echo "$BRANCH" | grep -oE '[0-9]+' | head -1)
+
+if [ -n "$ISSUE" ]; then
+    # Add issue reference at end
+    echo "" >> "$COMMIT_MSG_FILE"
+    echo "Refs #$ISSUE" >> "$COMMIT_MSG_FILE"
+fi
+
+# Suggest conventional commit type based on changed files
+CHANGED=$(git diff --cached --name-only 2>/dev/null)
+if [ -n "$CHANGED" ]; then
+    echo "" >> "$COMMIT_MSG_FILE"
+    echo "# Suggestions based on changed files:" >> "$COMMIT_MSG_FILE"
+    
+    if echo "$CHANGED" | grep -q "^topstepx_backend/api/routes"; then
+        echo "#   feat(api): add new endpoint" >> "$COMMIT_MSG_FILE"
+    elif echo "$CHANGED" | grep -q "^topstepx_backend/services"; then
+        echo "#   fix(services): correct service behavior" >> "$COMMIT_MSG_FILE"
+    elif echo "$CHANGED" | grep -q "^topstepx_backend/strategy"; then
+        echo "#   feat(strategy): implement new strategy" >> "$COMMIT_MSG_FILE"
+    elif echo "$CHANGED" | grep -q "^topstepx_frontend/src/components"; then
+        echo "#   feat(ui): add new component" >> "$COMMIT_MSG_FILE"
+    elif echo "$CHANGED" | grep -q "test"; then
+        echo "#   test: add test coverage" >> "$COMMIT_MSG_FILE"
+    elif echo "$CHANGED" | grep -q "\.md$"; then
+        echo "#   docs: update documentation" >> "$COMMIT_MSG_FILE"
+    fi
+fi

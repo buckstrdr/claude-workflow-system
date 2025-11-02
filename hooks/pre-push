@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Before push, run full local CI validation. Set STRICT_HOOKS=1 to enforce failures.
+set -euo pipefail
+STRICT=${STRICT_HOOKS:-0}
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+rc=0
+echo "[pre-push] Running local CI (make ci-check) ..." >&2
+make -s ci-check || rc=$?
+
+if [ "$STRICT" = "1" ]; then
+  exit $rc
+else
+  if [ $rc -ne 0 ]; then
+    echo "[pre-push] WARN: CI issues detected (ignored; set STRICT_HOOKS=1 to enforce)" >&2
+  fi
+fi
+exit 0

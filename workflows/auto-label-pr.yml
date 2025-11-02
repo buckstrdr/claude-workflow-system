@@ -1,0 +1,37 @@
+name: Auto-label PRs by path
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Determine labels
+        id: labels
+        run: |
+          set -euo pipefail
+          echo "paths=" > paths.txt
+          git fetch --depth=1 origin ${{ github.event.pull_request.base.ref }} || true
+          commits=$(git rev-list --no-merges origin/${{ github.event.pull_request.base.ref }}..HEAD || true)
+          files=""
+          for c in $commits; do
+            files="$files $(git show --name-only --pretty="" $c)"
+          done
+          echo "$files" | tr ' ' '\n' | sort -u > files.txt
+          labels=""
+          if grep -qE '^topstepx_backend/' files.txt; then labels="$labels backend,area:backend"; fi
+          if grep -qE '^topstepx_frontend/' files.txt; then labels="$labels frontend,area:frontend"; fi
+          if grep -qE '^topstepx_frontend/src/types/' files.txt; then labels="$labels types"; fi
+          labels=$(echo "$labels" | sed 's/^ //; s/,\s*/,/g; s/,$//')
+          echo "labels=$labels" >> $GITHUB_OUTPUT
+      - name: Apply labels
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: ${{ steps.labels.outputs.labels }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

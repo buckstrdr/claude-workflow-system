@@ -1,0 +1,72 @@
+{
+  "mcpServers": {
+    "serena": {
+      "transport": {
+        "type": "streamable-http",
+        "url": "http://localhost:9121/mcp"
+      }
+    },
+    "openapi-backend": {
+      "transport": {
+        "type": "streamable-http",
+        "url": "http://localhost:9122/sse"
+      }
+    },
+    "playwright": {
+      "transport": {
+        "type": "streamable-http",
+        "url": "http://localhost:9123/sse"
+      }
+    },
+    "filesystem": {
+      "command": "uvx",
+      "args": ["mcp-server-filesystem", "/home/buckstrdr/TopStepx"],
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git", "--repository", "/home/buckstrdr/TopStepx"],
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    "deep_research": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/home/buckstrdr/.local/tools/mcp-server-deep-research",
+        "run",
+        "mcp-server-deep-research"
+      ],
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    "sequential_thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "transport": {
+        "type": "stdio"
+      }
+    },
+    "firecrawl": {
+      "command": "npx",
+      "args": ["-y", "firecrawl-mcp"],
+      "env": {
+        "FIRECRAWL_API_KEY": "fc-defc37ea980a490abfa2970fe3a7647a"
+      },
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  }
+}

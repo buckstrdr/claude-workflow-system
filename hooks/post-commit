@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# After each commit: refresh OpenAPI when backend API changed.
+set -euo pipefail
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+if ! command -v make >/dev/null 2>&1; then
+  exit 0
+fi
+
+CHANGED=$(git show --name-only --pretty="" HEAD || true)
+if echo "$CHANGED" | grep -Eq "^topstepx_backend/api/|^topstepx_backend/.*\.py$"; then
+  echo "[post-commit] API/backend changed → regenerating OpenAPI ..." >&2
+  make -s openapi || true
+  echo "[post-commit] Syncing FE types from OpenAPI ..." >&2
+  make -s types || true
+fi
+
+exit 0

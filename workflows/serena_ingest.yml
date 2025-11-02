@@ -1,0 +1,67 @@
+name: Serena Ingest
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+  pull_request:
+    types: [opened, edited, labeled]
+  workflow_dispatch: {}
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare Serena knowledge note
+        id: prep
+        run: |
+          set -euo pipefail
+          mkdir -p .serena/knowledge/github/issues .serena/knowledge/github/prs
+          TS=$(date -u +%Y-%m-%dT%H%M%SZ)
+          if [ "${{ github.event_name }}" = "issues" ]; then
+            NUM=${{ github.event.issue.number }}
+            TITLE="${{ github.event.issue.title }}"
+            BODY="${{ github.event.issue.body }}"
+            LABELS=$(printf "%s" "${{ toJson(github.event.issue.labels) }}" | jq -r 'map(.name)|join(",")')
+            FILE=.serena/knowledge/github/issues/${TS}_issue_${NUM}.md
+            echo "---" > "$FILE"
+            echo "ts: $TS" >> "$FILE"
+            echo "kind: issue" >> "$FILE"
+            echo "number: $NUM" >> "$FILE"
+            echo "title: ${TITLE}" | sed 's/\r$//' >> "$FILE"
+            echo "labels: [$LABELS]" >> "$FILE"
+            echo "url: ${{ github.event.issue.html_url }}" >> "$FILE"
+            echo "---" >> "$FILE"
+            printf "\n%s\n" "$BODY" >> "$FILE"
+            echo "file=$FILE" >> $GITHUB_OUTPUT
+          else
+            NUM=${{ github.event.pull_request.number }}
+            TITLE="${{ github.event.pull_request.title }}"
+            BODY="${{ github.event.pull_request.body }}"
+            LABELS=$(printf "%s" "${{ toJson(github.event.pull_request.labels) }}" | jq -r 'map(.name)|join(",")')
+            FILE=.serena/knowledge/github/prs/${TS}_pr_${NUM}.md
+            echo "---" > "$FILE"
+            echo "ts: $TS" >> "$FILE"
+            echo "kind: pr" >> "$FILE"
+            echo "number: $NUM" >> "$FILE"
+            echo "title: ${TITLE}" | sed 's/\r$//' >> "$FILE"
+            echo "labels: [$LABELS]" >> "$FILE"
+            echo "url: ${{ github.event.pull_request.html_url }}" >> "$FILE"
+            echo "---" >> "$FILE"
+            printf "\n%s\n" "$BODY" >> "$FILE"
+            echo "file=$FILE" >> $GITHUB_OUTPUT
+          fi
+      - name: Upload knowledge artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: serena-ingest-${{ github.run_id }}
+          path: ${{ steps.prep.outputs.file }}
+      - name: Create PR with knowledge snapshot
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(serena): ingest ${{ github.event_name }} #${{ github.event.issue.number || github.event.pull_request.number }}"
+          branch: ci/serena-ingest-${{ github.run_id }}
+          title: "chore(serena): ingest ${{ github.event_name }} #${{ github.event.issue.number || github.event.pull_request.number }}"
+          body: "Automated ingestion of ${{ github.event_name }} into Serena knowledge."
+          add-paths: |
+            .serena/knowledge/github/**

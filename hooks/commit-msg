@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Conventional Commits (warn-only by default). Set STRICT_HOOKS=1 to enforce.
+set -euo pipefail
+STRICT=${STRICT_HOOKS:-0}
+if [ -f ".git/hooks/strict" ]; then STRICT=1; fi
+MSG_FILE="$1"
+MSG="$(head -n1 "$MSG_FILE" | tr -d '\r')"
+re='^(feat|fix|chore|docs|refactor|perf|test|style|build|ci)(\([a-zA-Z0-9_-]+\))?!?: .+'
+if ! echo "$MSG" | grep -Eq "$re"; then
+  echo "[commit-msg] Tip: use Conventional Commits (e.g., 'feat(area): message')" >&2
+  if [ "$STRICT" = "1" ]; then
+    echo "[commit-msg] FAIL (STRICT_HOOKS=1)" >&2
+    exit 1
+  fi
+fi

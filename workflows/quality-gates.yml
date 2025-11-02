@@ -1,0 +1,174 @@
+name: Quality Gate Enforcement
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  verify-quality-gates:
+    name: Verify Quality Gates Complete
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for quality gate tracking
+
+      - name: Extract feature name from branch
+        id: feature
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          FEATURE=$(echo "$BRANCH" | sed 's|^[^/]*/||')
+          echo "name=$FEATURE" >> $GITHUB_OUTPUT
+          echo "Feature: $FEATURE"
+
+      - name: Check quality gate tracking exists
+        id: gate_check
+        run: |
+          GATE_DIR=".git/quality-gates/${{ steps.feature.outputs.name }}"
+
+          if [ ! -d "$GATE_DIR" ]; then
+            echo "❌ CRITICAL: No quality gate tracking found for feature: ${{ steps.feature.outputs.name }}"
+            echo ""
+            echo "Quality gates are MANDATORY for all features."
+            echo ""
+            echo "To initialize:"
+            echo "  /gates start ${{ steps.feature.outputs.name }}"
+            echo ""
+            echo "Then follow the 7-stage workflow:"
+            echo "  1. /spec - Create specification"
+            echo "  2. Write tests FIRST (TDD)"
+            echo "  3. Implement to make tests pass"
+            echo "  4. Refactor"
+            echo "  5. Integrate (make openapi && make types)"
+            echo "  6. /e2e-verify"
+            echo "  7. /validator for code review"
+            exit 1
+          fi
+
+          CURRENT_GATE=$(cat "$GATE_DIR/current_gate.txt" 2>/dev/null || echo "0")
+          echo "current=$CURRENT_GATE" >> $GITHUB_OUTPUT
+
+          if [ "$CURRENT_GATE" -lt 7 ]; then
+            echo "❌ BLOCKED: Quality Gate $CURRENT_GATE/7 - Gate 7 (Code Reviewed) required"
+            echo ""
+            echo "Current gate status:"
+            .git/quality-gates/gates-check.sh "${{ steps.feature.outputs.name }}"
+            echo ""
+            echo "Complete remaining gates before merging to main."
+            exit 1
+          fi
+
+          echo "✓ Quality Gate 7/7: Code Reviewed - PASSED"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Run completeness verification
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Completeness Verification"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+          # 1. Code Quality Checks
+          echo "→ Checking for TODOs/FIXMEs in production code..."
+          if grep -r "TODO\|FIXME" topstepx_backend/ topstepx_frontend/src/ --exclude-dir=tests --exclude-dir=__tests__ 2>/dev/null; then
+            echo "❌ Found TODOs/FIXMEs in production code"
+            exit 1
+          fi
+          echo "✓ No TODOs/FIXMEs in production"
+
+          # 2. No debug statements
+          echo "→ Checking for debug statements..."
+          if grep -r "console\.log\|print(" topstepx_backend/ topstepx_frontend/src/ --exclude-dir=tests --exclude-dir=__tests__ 2>/dev/null | grep -v "# OK:" 2>/dev/null; then
+            echo "❌ Found debug statements"
+            exit 1
+          fi
+          echo "✓ No debug statements"
+
+          # 3. Backend tests pass
+          echo "→ Running backend tests..."
+          python -m pytest topstepx_backend/tests/ -v --tb=short || {
+            echo "❌ Backend tests failed"
+            exit 1
+          }
+          echo "✓ Backend tests pass"
+
+          # 4. OpenAPI spec exists and is valid
+          echo "→ Checking OpenAPI spec..."
+          if [ ! -f .serena/knowledge/openapi.json ]; then
+            echo "❌ OpenAPI spec not found"
+            exit 1
+          fi
+          echo "✓ OpenAPI spec present"
+
+          # 5. Frontend types synced
+          echo "→ Checking frontend types..."
+          if [ ! -f topstepx_frontend/src/types/api.d.ts ]; then
+            echo "❌ Frontend types not generated"
+            exit 1
+          fi
+          echo "✓ Frontend types present"
+
+          echo ""
+          echo "✅ Completeness verification: PASSED"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        working-directory: topstepx_frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: topstepx_frontend
+        run: |
+          echo "→ Building frontend..."
+          npm run build || {
+            echo "❌ Frontend build failed"
+            exit 1
+          }
+          echo "✓ Frontend builds successfully"
+
+      - name: Run CI validation
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  CI Validation (make ci-check)"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+          make ci-check || {
+            echo "❌ CI validation failed"
+            exit 1
+          }
+
+          echo "✓ CI validation: PASSED"
+
+      - name: Summary
+        if: success()
+        run: |
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Quality Gate Enforcement: ALL CHECKS PASSED"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "✓ Quality Gate 7/7: Code Reviewed"
+          echo "✓ Completeness verification: PASSED"
+          echo "✓ Backend tests: PASSED"
+          echo "✓ Frontend build: PASSED"
+          echo "✓ CI validation: PASSED"
+          echo ""
+          echo "Ready to merge!"
+          echo ""

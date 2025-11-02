@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# Prevent dangerous rebase operations
+set -e
+
+BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null)
+UPSTREAM=$1
+REBASED_BRANCH=$2
+
+# Prevent rebasing main/master/production branches
+if echo "$BRANCH" | grep -qE "^(main|master|production)$"; then
+    echo "❌ ERROR: Cannot rebase $BRANCH branch"
+    echo "   Protected branches should use merge, not rebase"
+    echo "   Use: git merge <branch> instead"
+    exit 1
+fi
+
+# Warn if branch is pushed to remote (will require force-push)
+REMOTE_BRANCH=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || true)
+if [ -n "$REMOTE_BRANCH" ]; then
+    echo "⚠️  WARNING: Branch '$BRANCH' is pushed to remote '$REMOTE_BRANCH'"
+    echo "   Rebasing will rewrite history and require force-push"
+    echo ""
+    
+    # Check if there are commits others may have based work on
+    UNPULLED=$(git log @{u}..HEAD --oneline 2>/dev/null | wc -l)
+    UNPUSHED=$(git log HEAD..@{u} --oneline 2>/dev/null | wc -l)
+    
+    if [ "$UNPULLED" -gt 0 ]; then
+        echo "   📊 Commits to be rebased: $UNPULLED"
+    fi
+    
+    if [ "$UNPUSHED" -gt 0 ]; then
+        echo "   📥 Unpulled commits: $UNPUSHED"
+    fi
+    
+    echo ""
+    echo "   After rebase, you'll need to: git push --force-with-lease"
+    echo ""
+    
+    # Interactive confirmation
+    if [ -t 0 ]; then
+        read -p "   Continue with rebase? (y/N) " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Rebase cancelled"
+            exit 1
+        fi
+    fi
+fi
+
+# All clear
+exit 0

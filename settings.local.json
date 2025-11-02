@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make:*)",
+      "Bash(test:*)",
+      "Bash(python:*)",
+      "Bash(bash:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(git log:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

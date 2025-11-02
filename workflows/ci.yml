@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, chore/**, feat/**, fix/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  frontend-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: topstepx_frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: topstepx_frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+
+  knowledge-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-3.11-knowledge-health-${{ hashFiles('.github/workflows/ci.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-3.11-knowledge-health-
+      - name: Install semantic deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install sentence-transformers faiss-cpu
+      - name: Knowledge refresh
+        run: |
+          make knowledge-refresh
+      - name: Upload knowledge artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: serena-knowledge
+          path: |
+            .serena/knowledge/**
+            .serena/graphs/*.json
+            .serena/graphs/semantic_meta.json
+            .serena/graphs/semantic.index
+
+  contract-sync:
+    runs-on: ubuntu-latest
+    needs: knowledge-health
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: topstepx_frontend/package-lock.json
+      - name: Generate backend types (temp)
+        run: |
+          npx --yes openapi-typescript .serena/knowledge/openapi.json -o /tmp/api.d.ts
+      - name: Verify frontend types are in sync
+        run: |
+          if [ ! -f topstepx_frontend/src/types/api.d.ts ]; then
+            echo 'Missing topstepx_frontend/src/types/api.d.ts. Run `make types-refresh` and commit.' >&2
+            exit 1
+          fi
+          if ! diff -u /tmp/api.d.ts topstepx_frontend/src/types/api.d.ts; then
+            echo 'Frontend types out of sync with backend OpenAPI. Run `make types-refresh` and commit.' >&2
+            exit 1
+          fi

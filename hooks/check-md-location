@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+# Local Hook: Check Session File Location
+# Ensures new .md and test files go in .ian/, not root
+
+set -e
+
+# Allowed .md files in root (user-facing docs only)
+ALLOWED_ROOT_MD=(
+    "README.md"
+    "CLAUDE.md"
+    "AGENTS.md"
+    "CONTRIBUTING.md"
+    "CHANGELOG.md"
+    "SESSION_INIT_PROMPT.md"
+    "INIT_QUICK.md"
+    "AUTO_COMMIT_README.md"
+    "AUTOSAVE_QUICK_START.md"
+    "GIT_AUTOSAVE_GUIDE.md"
+    "COMPLETE_SYSTEM_ARCHITECTURE.md"
+    "EXIT_POLICY_TESTING_GUIDE.md"
+    "PERPETUITY_ARCHITECTURE_ANALYSIS.md"
+    "PERPETUITY_FIXES.md"
+    "STRATEGY_ANALYTICS_ROADMAP.md"
+    "STRATEGY LOGS (INFO?)??.md"
+)
+
+# Get list of new .md files being added to root
+NEW_ROOT_MD=$(git diff --cached --name-only --diff-filter=A | grep "^[^/]*\.md$" || true)
+
+# Get list of new test files being added to root
+NEW_ROOT_TESTS=$(git diff --cached --name-only --diff-filter=A | grep -E "^(test_.*\.(py|js|ts|jsx|tsx)|.*_(test|spec)\.(py|js|ts|jsx|tsx))$" || true)
+
+if [ -z "$NEW_ROOT_MD" ] && [ -z "$NEW_ROOT_TESTS" ]; then
+    exit 0
+fi
+
+# Check each new .md file
+MD_VIOLATIONS=""
+while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    # Check if file is in allowed list
+    is_allowed=false
+    for allowed in "${ALLOWED_ROOT_MD[@]}"; do
+        if [ "$file" = "$allowed" ]; then
+            is_allowed=true
+            break
+        fi
+    done
+
+    if [ "$is_allowed" = false ]; then
+        MD_VIOLATIONS="${MD_VIOLATIONS}  - $file (markdown)\n"
+    fi
+done <<< "$NEW_ROOT_MD"
+
+# Check each new test file (none allowed in root)
+TEST_VIOLATIONS=""
+while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    TEST_VIOLATIONS="${TEST_VIOLATIONS}  - $file (test file)\n"
+done <<< "$NEW_ROOT_TESTS"
+
+ALL_VIOLATIONS="${MD_VIOLATIONS}${TEST_VIOLATIONS}"
+
+if [ -n "$ALL_VIOLATIONS" ]; then
+    echo ""
+    echo "❌ ERROR: New session files detected in project root:"
+    echo ""
+    echo -e "$ALL_VIOLATIONS"
+    echo ""
+    echo "Session research/investigation/test files MUST go in .ian/ directory:"
+    echo ""
+    echo "  git reset HEAD <file>"
+    echo "  mv <file> .ian/"
+    echo "  git add .ian/<file>"
+    echo ""
+    echo "Documentation: Only user-facing docs belong in root (see CLAUDE.md)"
+    echo "Tests: Use topstepx_backend/tests/ or topstepx_frontend/src/__tests__/"
+    echo "Session work: Use .ian/ for temporary files (see .ian/README.md)"
+    echo ""
+    exit 1
+fi
+
+exit 0
