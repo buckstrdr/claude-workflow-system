@@ -30,12 +30,12 @@ git checkout -b issue/42-my-feature
 /gates pass
 
 # 4. Tests FIRST
-# Create: topstepx_backend/tests/test_my_feature.py
+# Create: your_backend/tests/test_my_feature.py
 git commit -m "test: add my feature tests"
 /gates pass
 
 # 5. Implement
-# Edit: topstepx_backend/services/my_service.py
+# Edit: your_backend/services/my_service.py
 git commit -m "feat: implement my feature"
 /gates pass
 
@@ -102,14 +102,14 @@ STRICT_HOOKS=0 git push origin main
 
 ```bash
 # Unstage implementation
-git reset HEAD topstepx_backend/services/
+git reset HEAD your_backend/services/
 
 # Commit tests first
-git add topstepx_backend/tests/
+git add your_backend/tests/
 git commit -m "test: add tests"
 
 # Then commit implementation
-git add topstepx_backend/services/
+git add your_backend/services/
 git commit -m "feat: implement"
 ```
 

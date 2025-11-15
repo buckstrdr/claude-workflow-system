@@ -20,14 +20,14 @@
     },
     "filesystem": {
       "command": "uvx",
-      "args": ["mcp-server-filesystem", "/home/buckstrdr/TopStepx"],
+      "args": ["mcp-server-filesystem", "/path/to/your/project"],
       "transport": {
         "type": "stdio"
       }
     },
     "git": {
       "command": "uvx",
-      "args": ["mcp-server-git", "--repository", "/home/buckstrdr/TopStepx"],
+      "args": ["mcp-server-git", "--repository", "/path/to/your/project"],
       "transport": {
         "type": "stdio"
       }
@@ -36,7 +36,7 @@
       "command": "uv",
       "args": [
         "--directory",
-        "/home/buckstrdr/.local/tools/mcp-server-deep-research",
+        "/path/to/mcp-server-deep-research",
         "run",
         "mcp-server-deep-research"
       ],
@@ -62,7 +62,7 @@
       "command": "npx",
       "args": ["-y", "firecrawl-mcp"],
       "env": {
-        "FIRECRAWL_API_KEY": "fc-defc37ea980a490abfa2970fe3a7647a"
+        "FIRECRAWL_API_KEY": "your-api-key-here"
       },
       "transport": {
         "type": "stdio"

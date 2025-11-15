@@ -116,8 +116,8 @@ List ALL files changed with:
 
 Example:
 ```markdown
-1. **Created**: `topstepx_backend/services/contract_helpers.py` (57 lines)
-2. **Modified**: `topstepx_backend/services/bracket_editor.py` (lines 37, 558-560)
+1. **Created**: `your_backend/services/contract_helpers.py` (57 lines)
+2. **Modified**: `your_backend/services/bracket_editor.py` (lines 37, 558-560)
 ```
 
 ### 4. Changes Made (Required)

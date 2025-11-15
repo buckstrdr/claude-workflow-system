@@ -1,7 +1,6 @@
-# TopStepX Development Workflow Guide
+# Claude Code Workflow System Guide
 
-**Last Updated**: October 31, 2025
-**Author**: buckstrdr
+**Last Updated**: November 15, 2025
 **Purpose**: Comprehensive guide to all development workflows, tools, skills, hooks, and automation
 
 ---
@@ -295,8 +294,8 @@ STRICT_HOOKS=0 git push origin main
 
 ### What It Watches
 
-- ✅ `topstepx_backend/` - All backend code
-- ✅ `topstepx_frontend/` - All frontend code
+- ✅ `your_backend/` - All backend code (customize to your project structure)
+- ✅ `your_frontend/` - All frontend code (customize to your project structure)
 - ❌ `.serena/` - Ignored
 - ❌ `dev/` - Ignored
 - ❌ `docs/` - Ignored
@@ -437,7 +436,7 @@ Gates are tracked in:
 ### When It Runs
 
 **Automatically triggered**:
-- After modifying files in `topstepx_frontend/src/`
+- After modifying files in `your_frontend/src/`
 - Pre-commit hook detects frontend changes
 - Blocks commit if verification failed or missing
 
@@ -810,9 +809,9 @@ Plan includes:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Changes:
-- Created: topstepx_backend/services/idempotency_store.py
-- Created: topstepx_backend/tests/test_idempotency_store.py
-- Modified: topstepx_backend/services/__init__.py
+- Created: your_backend/services/idempotency_store.py
+- Created: your_backend/tests/test_idempotency_store.py
+- Modified: your_backend/services/__init__.py
 
 Please review before proceeding to Batch 2.
 Continue? (y/n)
@@ -911,8 +910,8 @@ The 3-step workflow naturally maps to quality gates:
 
 ### File Organization
 
-1. ✅ Backend code in `topstepx_backend/`
-2. ✅ Frontend code in `topstepx_frontend/`
+1. ✅ Backend code in `your_backend/`
+2. ✅ Frontend code in `your_frontend/`
 3. ✅ Session research/temp files in `.ian/`
 4. ✅ Production tests in proper test directories
 5. ✅ NEVER commit `.ian/` files to git
@@ -1075,7 +1074,7 @@ git push origin main
 
 ```bash
 # 1. Modify component
-# Edit: topstepx_frontend/src/components/OrderEntry.tsx
+# Edit: your_frontend/src/components/OrderEntry.tsx
 
 # 2. Run UI verification (MANDATORY)
 /ui-verify
@@ -1211,7 +1210,7 @@ DEBUG=1                # Enable debug logging
 
 ## Summary
 
-This workflow guide documents the complete TopStepX development system:
+This workflow guide documents the complete Claude Code workflow system:
 
 - **36 Claude Code Skills** for automation and guidance
 - **9 Git Hooks** for code quality and automation
@@ -1235,5 +1234,5 @@ This workflow guide documents the complete TopStepX development system:
 
 **Document Version**: 1.0
 **Last Updated**: October 31, 2025
-**Maintained By**: buckstrdr
+**Note**: Customize paths and project-specific details for your project
 **Location**: `.ian/workflow_guide.md`

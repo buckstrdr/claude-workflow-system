@@ -21,9 +21,9 @@ Changes
   - [ ] CI/Actions
 
 Verification
-- [ ] Backend starts: `python -m topstepx_backend`
+- [ ] Backend starts: `python -m your_backend`
 - [ ] Status/health endpoints OK
-- [ ] Critical flows smoke-tested (orders, history, analytics)
+- [ ] Critical flows smoke-tested
 - [ ] Frontend builds (`npm run build`) and key UI paths work
 
 Serena / Contracts & Types
