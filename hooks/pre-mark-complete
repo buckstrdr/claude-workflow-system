@@ -65,7 +65,7 @@ echo "→ Checking /verify-complete requirements..."
 echo ""
 
 # Code Quality
-TODOS=$(grep -r "TODO\|FIXME\|XXX\|HACK" topstepx_backend/ topstepx_frontend/src/ --exclude-dir="tests" --exclude-dir="__tests__" --exclude-dir="node_modules" 2>/dev/null || true)
+TODOS=$(grep -r "TODO\|FIXME\|XXX\|HACK" your_backend/ your_frontend/src/ --exclude-dir="tests" --exclude-dir="__tests__" --exclude-dir="node_modules" 2>/dev/null || true)
 
 if [ -n "$TODOS" ]; then
   echo "❌ Code Quality: TODO/FIXME found in production code"
@@ -77,7 +77,7 @@ else
 fi
 
 # Debug statements
-DEBUG=$(grep -rE "(console\.log|print\(|debugger|pdb\.set_trace)" topstepx_backend/ topstepx_frontend/src/ --exclude-dir="tests" --exclude-dir="__tests__" --exclude-dir="node_modules" 2>/dev/null || true)
+DEBUG=$(grep -rE "(console\.log|print\(|debugger|pdb\.set_trace)" your_backend/ your_frontend/src/ --exclude-dir="tests" --exclude-dir="__tests__" --exclude-dir="node_modules" 2>/dev/null || true)
 
 if [ -n "$DEBUG" ]; then
   echo "❌ Code Quality: Debug statements found"
@@ -95,7 +95,7 @@ echo ""
 
 # Backend tests
 if command -v python >/dev/null 2>&1; then
-  if python -m pytest topstepx_backend/tests/ -q >/dev/null 2>&1; then
+  if python -m pytest your_backend/tests/ -q >/dev/null 2>&1; then
     echo "✓ Tests: Backend tests passing"
   else
     echo "❌ Tests: Backend tests FAILING"
@@ -104,8 +104,8 @@ if command -v python >/dev/null 2>&1; then
 fi
 
 # Frontend tests (if applicable)
-if [ -f "topstepx_frontend/package.json" ] && grep -q '"test"' topstepx_frontend/package.json; then
-  cd topstepx_frontend
+if [ -f "your_frontend/package.json" ] && grep -q '"test"' your_frontend/package.json; then
+  cd your_frontend
   if npm test -- --run >/dev/null 2>&1; then
     echo "✓ Tests: Frontend tests passing"
   else
@@ -121,7 +121,7 @@ echo "→ Checking integration..."
 echo ""
 
 # Backend can start
-if timeout 10 python -m topstepx_backend --help >/dev/null 2>&1; then
+if timeout 10 python -m your_backend --help >/dev/null 2>&1; then
   echo "✓ Integration: Backend imports successfully"
 else
   echo "❌ Integration: Backend CANNOT import"
@@ -129,8 +129,8 @@ else
 fi
 
 # Frontend builds
-if [ -d "topstepx_frontend" ]; then
-  cd topstepx_frontend
+if [ -d "your_frontend" ]; then
+  cd your_frontend
   if npm run build >/dev/null 2>&1; then
     echo "✓ Integration: Frontend builds successfully"
   else

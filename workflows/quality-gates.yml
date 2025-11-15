@@ -83,7 +83,7 @@ jobs:
 
           # 1. Code Quality Checks
           echo "→ Checking for TODOs/FIXMEs in production code..."
-          if grep -r "TODO\|FIXME" topstepx_backend/ topstepx_frontend/src/ --exclude-dir=tests --exclude-dir=__tests__ 2>/dev/null; then
+          if grep -r "TODO\|FIXME" your_backend/ your_frontend/src/ --exclude-dir=tests --exclude-dir=__tests__ 2>/dev/null; then
             echo "❌ Found TODOs/FIXMEs in production code"
             exit 1
           fi
@@ -91,7 +91,7 @@ jobs:
 
           # 2. No debug statements
           echo "→ Checking for debug statements..."
-          if grep -r "console\.log\|print(" topstepx_backend/ topstepx_frontend/src/ --exclude-dir=tests --exclude-dir=__tests__ 2>/dev/null | grep -v "# OK:" 2>/dev/null; then
+          if grep -r "console\.log\|print(" your_backend/ your_frontend/src/ --exclude-dir=tests --exclude-dir=__tests__ 2>/dev/null | grep -v "# OK:" 2>/dev/null; then
             echo "❌ Found debug statements"
             exit 1
           fi
@@ -99,7 +99,7 @@ jobs:
 
           # 3. Backend tests pass
           echo "→ Running backend tests..."
-          python -m pytest topstepx_backend/tests/ -v --tb=short || {
+          python -m pytest your_backend/tests/ -v --tb=short || {
             echo "❌ Backend tests failed"
             exit 1
           }
@@ -115,7 +115,7 @@ jobs:
 
           # 5. Frontend types synced
           echo "→ Checking frontend types..."
-          if [ ! -f topstepx_frontend/src/types/api.d.ts ]; then
+          if [ ! -f your_frontend/src/types/api.d.ts ]; then
             echo "❌ Frontend types not generated"
             exit 1
           fi
@@ -130,11 +130,11 @@ jobs:
           node-version: '20'
 
       - name: Install frontend dependencies
-        working-directory: topstepx_frontend
+        working-directory: your_frontend
         run: npm ci
 
       - name: Build frontend
-        working-directory: topstepx_frontend
+        working-directory: your_frontend
         run: |
           echo "→ Building frontend..."
           npm run build || {

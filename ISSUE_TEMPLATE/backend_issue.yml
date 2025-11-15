@@ -1,5 +1,5 @@
 name: Backend issue
-description: Use this template for issues affecting `topstepx_backend` (server, API, services).
+description: Use this template for issues affecting your backend (server, API, services).
 title: "[backend] {{summary}}"
 labels: backend, area:backend
 body:

@@ -14,7 +14,7 @@ cd "$REPO_ROOT"
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
 # Check if any frontend files changed
-FRONTEND_CHANGES=$(echo "$STAGED_FILES" | grep "^topstepx_frontend/src/" | grep -E '\.(tsx?|jsx?|css)$' || true)
+FRONTEND_CHANGES=$(echo "$STAGED_FILES" | grep "^your_frontend/src/" | grep -E '\.(tsx?|jsx?|css)$' || true)
 
 if [ -z "$FRONTEND_CHANGES" ]; then
   # No frontend changes, skip UI verification

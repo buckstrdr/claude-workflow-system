@@ -68,12 +68,12 @@ case $CURRENT_GATE in
     echo ""
 
     # Check if tests exist
-    TEST_COUNT=$(find topstepx_backend/tests/ -name "test_*.py" 2>/dev/null | wc -l || echo 0)
+    TEST_COUNT=$(find your_backend/tests/ -name "test_*.py" 2>/dev/null | wc -l || echo 0)
     if [ "$TEST_COUNT" -gt 0 ]; then
       echo "✓ Test files found: $TEST_COUNT"
 
       # Check if tests are failing (Red phase)
-      if python -m pytest topstepx_backend/tests/ -q >/dev/null 2>&1; then
+      if python -m pytest your_backend/tests/ -q >/dev/null 2>&1; then
         echo "⚠️  Tests are PASSING (should be FAILING in Red phase)"
         echo "   This is OK if you're reviewing after implementation"
       else
@@ -90,7 +90,7 @@ case $CURRENT_GATE in
     echo ""
 
     # Check if tests pass
-    if python -m pytest topstepx_backend/tests/ -q >/dev/null 2>&1; then
+    if python -m pytest your_backend/tests/ -q >/dev/null 2>&1; then
       echo "✓ All tests PASSING (Green phase)"
     else
       echo "❌ Tests FAILING (need to pass for Gate 3)"
@@ -98,7 +98,7 @@ case $CURRENT_GATE in
     fi
 
     # Check for TODOs
-    TODOS=$(grep -r "TODO\|FIXME" topstepx_backend/ --exclude-dir="tests" 2>/dev/null || true)
+    TODOS=$(grep -r "TODO\|FIXME" your_backend/ --exclude-dir="tests" 2>/dev/null || true)
     if [ -z "$TODOS" ]; then
       echo "✓ No TODOs in production code"
     else
@@ -107,7 +107,7 @@ case $CURRENT_GATE in
     fi
 
     # Check for debug statements
-    DEBUG=$(grep -rE "(print\(|console\.log)" topstepx_backend/ topstepx_frontend/src/ --exclude-dir="tests" --exclude-dir="__tests__" 2>/dev/null || true)
+    DEBUG=$(grep -rE "(print\(|console\.log)" your_backend/ your_frontend/src/ --exclude-dir="tests" --exclude-dir="__tests__" 2>/dev/null || true)
     if [ -z "$DEBUG" ]; then
       echo "✓ No debug statements"
     else
@@ -121,7 +121,7 @@ case $CURRENT_GATE in
     echo ""
 
     # Check if tests still pass
-    if python -m pytest topstepx_backend/tests/ -q >/dev/null 2>&1; then
+    if python -m pytest your_backend/tests/ -q >/dev/null 2>&1; then
       echo "✓ Tests still passing after refactor"
     else
       echo "❌ Tests FAILING after refactor"
@@ -149,7 +149,7 @@ case $CURRENT_GATE in
     fi
 
     # Check if FE types exist
-    if [ -f "topstepx_frontend/src/types/api.d.ts" ]; then
+    if [ -f "your_frontend/src/types/api.d.ts" ]; then
       echo "✓ Frontend types exist"
     else
       echo "❌ Frontend types not found (run: make types)"

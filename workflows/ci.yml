@@ -11,14 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: topstepx_frontend
+        working-directory: your_frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: topstepx_frontend/package-lock.json
+          cache-dependency-path: your_frontend/package-lock.json
       - run: npm ci
       - run: npm run lint
 
@@ -62,17 +62,17 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: topstepx_frontend/package-lock.json
+          cache-dependency-path: your_frontend/package-lock.json
       - name: Generate backend types (temp)
         run: |
           npx --yes openapi-typescript .serena/knowledge/openapi.json -o /tmp/api.d.ts
       - name: Verify frontend types are in sync
         run: |
-          if [ ! -f topstepx_frontend/src/types/api.d.ts ]; then
-            echo 'Missing topstepx_frontend/src/types/api.d.ts. Run `make types-refresh` and commit.' >&2
+          if [ ! -f your_frontend/src/types/api.d.ts ]; then
+            echo 'Missing your_frontend/src/types/api.d.ts. Run `make types-refresh` and commit.' >&2
             exit 1
           fi
-          if ! diff -u /tmp/api.d.ts topstepx_frontend/src/types/api.d.ts; then
+          if ! diff -u /tmp/api.d.ts your_frontend/src/types/api.d.ts; then
             echo 'Frontend types out of sync with backend OpenAPI. Run `make types-refresh` and commit.' >&2
             exit 1
           fi

@@ -62,7 +62,7 @@
       "command": "npx",
       "args": ["-y", "firecrawl-mcp"],
       "env": {
-        "FIRECRAWL_API_KEY": "your-api-key-here"
+        "FIRECRAWL_API_KEY": "fc-defc37ea980a490abfa2970fe3a7647a"
       },
       "transport": {
         "type": "stdio"

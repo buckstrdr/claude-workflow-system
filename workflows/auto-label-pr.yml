@@ -24,9 +24,9 @@ jobs:
           done
           echo "$files" | tr ' ' '\n' | sort -u > files.txt
           labels=""
-          if grep -qE '^topstepx_backend/' files.txt; then labels="$labels backend,area:backend"; fi
-          if grep -qE '^topstepx_frontend/' files.txt; then labels="$labels frontend,area:frontend"; fi
-          if grep -qE '^topstepx_frontend/src/types/' files.txt; then labels="$labels types"; fi
+          if grep -qE '^your_backend/' files.txt; then labels="$labels backend,area:backend"; fi
+          if grep -qE '^your_frontend/' files.txt; then labels="$labels frontend,area:frontend"; fi
+          if grep -qE '^your_frontend/src/types/' files.txt; then labels="$labels types"; fi
           labels=$(echo "$labels" | sed 's/^ //; s/,\s*/,/g; s/,$//')
           echo "labels=$labels" >> $GITHUB_OUTPUT
       - name: Apply labels
