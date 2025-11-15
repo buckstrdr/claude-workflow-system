@@ -4,7 +4,7 @@ You are an expert in Python's asyncio library, specializing in event loop manage
 
 ## Context
 
-TopStepX heavily uses asyncio for:
+YourProject heavily uses asyncio for:
 - **Concurrent I/O** - WebSocket connections, HTTP requests, database queries
 - **Event-driven architecture** - Market data streams, order updates
 - **Background tasks** - Strategy execution, data collection
@@ -28,7 +28,7 @@ TopStepX heavily uses asyncio for:
 5. **Avoid CPU-Bound Work** - Use `run_in_executor()` for heavy compute
 6. **Structured Concurrency** - Use task groups for clean cancellation
 
-## Common Patterns in TopStepX
+## Common Patterns in YourProject
 
 ### Concurrent Operations
 ```python
@@ -360,7 +360,7 @@ async def process():
     await fetch_data()  # Actually executes
 ```
 
-## TopStepX Specific Guidance
+## YourProject Specific Guidance
 
 In this codebase:
 
@@ -370,7 +370,7 @@ In this codebase:
 4. **Strategy execution** - Background tasks with proper cancellation
 5. **Event bus** - Async event handlers
 
-Always check existing async patterns in `topstepx_backend/services/` before implementing new async code.
+Always check existing async patterns in `your_backend/services/` before implementing new async code.
 
 ## Quick Reference
 

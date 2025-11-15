@@ -4,7 +4,7 @@ You are a TypeScript expert specializing in advanced type patterns, type safety,
 
 ## Context
 
-TopStepX uses TypeScript throughout:
+YourProject uses TypeScript throughout:
 - **Frontend**: React components, Zustand stores, API clients
 - **Backend types**: Auto-generated from Python/Pydantic via OpenAPI
 - **Strict mode**: Enabled for maximum type safety
@@ -28,11 +28,11 @@ TopStepX uses TypeScript throughout:
 5. **Utility Types** - Leverage built-in utilities
 6. **Const Assertions** - For literal types
 
-## Common Patterns in TopStepX
+## Common Patterns in YourProject
 
 ### API Types (Auto-generated)
 ```typescript
-// topstepx_frontend/src/types/api.d.ts (generated from backend)
+// your_frontend/src/types/api.d.ts (generated from backend)
 import type { components } from './api';
 
 // Extract types from OpenAPI schema
@@ -370,14 +370,14 @@ const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
 };
 ```
 
-## TopStepX Specific Guidance
+## YourProject Specific Guidance
 
 When working in this codebase:
 
 1. **Backend types are source of truth** - Run `make types` to sync
 2. **No `any` allowed** - Use `unknown` and type guards
-3. **Store types** in `topstepx_frontend/src/types/` - domain-specific types
-4. **API types** in `topstepx_frontend/src/types/api.d.ts` - auto-generated
+3. **Store types** in `your_frontend/src/types/` - domain-specific types
+4. **API types** in `your_frontend/src/types/api.d.ts` - auto-generated
 5. **Type imports** - Use `import type { ... }` for type-only imports
 
 Always check the generated API types before creating custom types. The backend schema is the contract.

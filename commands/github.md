@@ -19,7 +19,7 @@ Provides commands for:
 gh auth status
 
 # If not authenticated, run:
-/home/buckstrdr/quick_github_auth.sh
+~/quick_github_auth.sh
 ```
 
 ## Common Operations
@@ -69,7 +69,7 @@ gh issue create --title "Backend: Fix order submission" --body "Order submission
 gh issue create --title "Title" --body "Body" --label "backend,bug"
 
 # With assignee
-gh issue create --title "Title" --body "Body" --assignee buckstrdr
+gh issue create --title "Title" --body "Body" --assignee your-github-username
 ```
 
 ### 4. Update Issue
@@ -88,8 +88,8 @@ gh issue edit 42 --remove-label "needs-triage"
 gh issue edit 42 --title "New title"
 
 # Assign/unassign
-gh issue edit 42 --add-assignee buckstrdr
-gh issue edit 42 --remove-assignee buckstrdr
+gh issue edit 42 --add-assignee your-github-username
+gh issue edit 42 --remove-assignee your-github-username
 ```
 
 ### 5. Close Issue (WITH DOCUMENTATION)
@@ -124,7 +124,7 @@ gh issue list --search "order submission"
 gh issue list --search "websocket" --state "closed"
 
 # Advanced search
-gh search issues "repo:buckstrdr/TopStepx order submission"
+gh search issues "repo:your-github-username/TopStepx order submission"
 ```
 
 ## Pull Request Operations
@@ -355,13 +355,13 @@ EOF
 - **JSON output**: Add `--json` for programmatic use
 - **Batch operations**: Use bash loops for multiple items
 - **Filter by date**: `gh issue list --search "created:>2025-10-01"`
-- **Filter by author**: `gh issue list --author buckstrdr`
+- **Filter by author**: `gh issue list --author your-github-username`
 
 ## Troubleshooting
 
 **Authentication expired:**
 ```bash
-/home/buckstrdr/quick_github_auth.sh
+~/quick_github_auth.sh
 ```
 
 **Check current repo:**

@@ -29,7 +29,7 @@ No arguments needed - automatically performs full initialization.
 
 ```bash
 pwd
-# Expected: /home/buckstrdr/TopStepx
+# Expected: /path/to/your/project
 ```
 
 ### Step 2-5: Load Core Documentation
@@ -68,8 +68,8 @@ fi
 ## What Was Worked On
 - Feature: Order idempotency implementation
 - Files modified:
-  - topstepx_backend/services/order_service.py
-  - topstepx_backend/tests/test_order_idempotency.py
+  - your_backend/services/order_service.py
+  - your_backend/tests/test_order_idempotency.py
 
 ## Quality Gate Status
 - Current Gate: 5/7 (Integrated)
@@ -184,7 +184,7 @@ systemctl --user status auto-commit.service | head -5
 tail -10 /tmp/auto-commit.log | grep "ONLY watching"
 
 # Expected output:
-#   ONLY watching: topstepx_backend topstepx_frontend
+#   ONLY watching: your_backend your_frontend
 #   Ignoring: .serena/, dev/, docs/, data/, etc.
 
 # Test commands available
@@ -201,12 +201,12 @@ git status
 git log --oneline -5
 
 # Check frontend types synced
-test -f topstepx_frontend/src/types/api.d.ts && echo "✓ FE types" || echo "⚠ Run: make types"
+test -f your_frontend/src/types/api.d.ts && echo "✓ FE types" || echo "⚠ Run: make types"
 
 # Check if types are in sync with OpenAPI
 if [ -f .serena/knowledge/openapi.json ]; then
   OPENAPI_MOD=$(stat -c %Y .serena/knowledge/openapi.json 2>/dev/null || stat -f %m .serena/knowledge/openapi.json)
-  TYPES_MOD=$(stat -c %Y topstepx_frontend/src/types/api.d.ts 2>/dev/null || stat -f %m topstepx_frontend/src/types/api.d.ts)
+  TYPES_MOD=$(stat -c %Y your_frontend/src/types/api.d.ts 2>/dev/null || stat -f %m your_frontend/src/types/api.d.ts)
 
   if [ "$OPENAPI_MOD" -gt "$TYPES_MOD" ]; then
     echo "⚠ Types out of sync - run: make types"
@@ -228,7 +228,7 @@ if [ -n "$LOOSE_MD" ] || [ -n "$LOOSE_TESTS" ]; then
     echo "$LOOSE_TESTS" | sed 's|^\./|  - |' | sed 's/$/ (test file)/'
   fi
   echo "  Move to .ian/: mv <file> .ian/"
-  echo "  Production tests: use topstepx_backend/tests/ or topstepx_frontend/src/__tests__/"
+  echo "  Production tests: use your_backend/tests/ or your_frontend/src/__tests__/"
 fi
 ```
 
@@ -238,7 +238,7 @@ Present results in this format:
 
 ```markdown
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  TopStepX Session Initialization Summary
+  YourProject Session Initialization Summary
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 **MCP Status**: RUNNING
@@ -264,7 +264,7 @@ Present results in this format:
 
 **Auto-Commit Service**:
 - Status: RUNNING ✓
-- Watching: topstepx_backend/, topstepx_frontend/
+- Watching: your_backend/, your_frontend/
 - Recent activity: Auto-commit: 2025-10-29 12:15:30
 
 **Knowledge Base**:
@@ -360,7 +360,7 @@ Should fix before proceeding.
 
 After initialization, remind user of:
 
-- **Focus on program surface**: topstepx_backend/, topstepx_frontend/, data/
+- **Focus on program surface**: your_backend/, your_frontend/, data/
 - **Use Serena for code discovery**: Don't build/fix tooling, use it to find code fast
 - **Test actual functionality**: Run server, test endpoints, check UI - not just syntax
 - **DELETE legacy code aggressively**: Delete > Consolidate, no sacred cows

@@ -24,7 +24,7 @@ Provides fast, clean restart workflows:
 ### Full Restart
 ```bash
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Restarting TopStepX Services"
+echo "  Restarting YourProject Services"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # Stop services
@@ -102,8 +102,8 @@ make frontend-stop
 
 # Clear Python caches
 echo "Clearing Python bytecode..."
-find topstepx_backend -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
-find topstepx_backend -name "*.pyc" -delete 2>/dev/null || true
+find your_backend -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+find your_backend -name "*.pyc" -delete 2>/dev/null || true
 
 # Clear any temporary state
 echo "Clearing temporary files..."
@@ -204,7 +204,7 @@ restart_and_verify() {
 **Issue: Process won't stop**
 ```bash
 # Force kill
-pkill -9 -f "python -m topstepx_backend"
+pkill -9 -f "python -m your_backend"
 pkill -9 -f "vite"
 
 # Or by PID

@@ -47,8 +47,8 @@ rm -rf .pytest_cache .mypy_cache htmlcov .coverage .coverage.* 2>/dev/null || tr
 
 # 4. Clear frontend caches
 echo "Clearing frontend caches..."
-rm -rf topstepx_frontend/node_modules/.vite 2>/dev/null || true
-rm -rf topstepx_frontend/dist 2>/dev/null || true
+rm -rf your_frontend/node_modules/.vite 2>/dev/null || true
+rm -rf your_frontend/dist 2>/dev/null || true
 
 # 5. Clear temporary files
 echo "Clearing temporary files..."
@@ -98,7 +98,7 @@ find . -name "*.pyc" -delete 2>/dev/null || true
 rm -rf .pytest_cache .mypy_cache 2>/dev/null || true
 
 # Frontend
-rm -rf topstepx_frontend/node_modules/.vite 2>/dev/null || true
+rm -rf your_frontend/node_modules/.vite 2>/dev/null || true
 
 echo "✓ Caches cleared"
 ```

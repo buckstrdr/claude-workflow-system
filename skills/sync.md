@@ -55,7 +55,7 @@ echo "Step 2/3: Generating TypeScript types..."
 make types
 
 if [ $? -eq 0 ]; then
-  echo "✓ Frontend types generated: topstepx_frontend/src/types/api.d.ts"
+  echo "✓ Frontend types generated: your_frontend/src/types/api.d.ts"
 else
   echo "✗ Type generation failed"
   exit 1
@@ -103,17 +103,17 @@ if [ ! -f .serena/knowledge/openapi.json ]; then
 fi
 
 # Check if types exist
-if [ ! -f topstepx_frontend/src/types/api.d.ts ]; then
+if [ ! -f your_frontend/src/types/api.d.ts ]; then
   echo "✗ Frontend types missing - run: /sync"
   exit 1
 fi
 
 # Check modification times
 OPENAPI_MOD=$(stat -c %Y .serena/knowledge/openapi.json 2>/dev/null || stat -f %m .serena/knowledge/openapi.json)
-TYPES_MOD=$(stat -c %Y topstepx_frontend/src/types/api.d.ts 2>/dev/null || stat -f %m topstepx_frontend/src/types/api.d.ts)
+TYPES_MOD=$(stat -c %Y your_frontend/src/types/api.d.ts 2>/dev/null || stat -f %m your_frontend/src/types/api.d.ts)
 
 # Check if backend schemas newer than OpenAPI
-BACKEND_MOD=$(find topstepx_backend/api/schemas -name "*.py" -exec stat -c %Y {} \; 2>/dev/null | sort -rn | head -1)
+BACKEND_MOD=$(find your_backend/api/schemas -name "*.py" -exec stat -c %Y {} \; 2>/dev/null | sort -rn | head -1)
 
 if [ "$BACKEND_MOD" -gt "$OPENAPI_MOD" ]; then
   echo "⚠ Backend schemas modified since last sync"
@@ -139,7 +139,7 @@ Generated from FastAPI routes and Pydantic schemas:
 - Validation rules
 - Descriptions and examples
 
-### 2. Frontend Types (topstepx_frontend/src/types/api.d.ts)
+### 2. Frontend Types (your_frontend/src/types/api.d.ts)
 TypeScript interfaces generated from OpenAPI:
 ```typescript
 // Auto-generated from OpenAPI
@@ -181,12 +181,12 @@ Updates code search index for faster semantic queries.
 
 ## Automatic Sync
 
-TopStepX has git hooks that auto-sync:
+YourProject has git hooks that auto-sync:
 
 **post-commit hook:**
 ```bash
 # If backend schemas changed, auto-regenerate OpenAPI and types
-if git diff HEAD~1 --name-only | grep -q "topstepx_backend/api/"; then
+if git diff HEAD~1 --name-only | grep -q "your_backend/api/"; then
   make openapi && make types
 fi
 ```
@@ -200,13 +200,13 @@ After syncing, verify it worked:
 ```bash
 # 1. Check files exist
 ls -lh .serena/knowledge/openapi.json
-ls -lh topstepx_frontend/src/types/api.d.ts
+ls -lh your_frontend/src/types/api.d.ts
 
 # 2. Check TypeScript compiles
-cd topstepx_frontend && npm run build
+cd your_frontend && npm run build
 
 # 3. Test an import
-cd topstepx_frontend && node -e "
+cd your_frontend && node -e "
   const types = require('./src/types/api.d.ts');
   console.log('Types loaded successfully');
 "
@@ -217,7 +217,7 @@ cd topstepx_frontend && node -e "
 **Issue: OpenAPI generation fails**
 ```
 Solution:
-  1. Check backend imports: python -c "import topstepx_backend"
+  1. Check backend imports: python -c "import your_backend"
   2. Check for syntax errors in schemas
   3. Run: python dev/devtools/docs/generate_openapi.py
   4. Check error output
@@ -251,7 +251,7 @@ CI checks enforce sync:
   run: |
     make openapi
     make types
-    git diff --exit-code topstepx_frontend/src/types/api.d.ts
+    git diff --exit-code your_frontend/src/types/api.d.ts
 ```
 
 If types are out of sync, CI fails!
@@ -281,5 +281,5 @@ make openapi
 make types
 
 # Check sync status
-git diff topstepx_frontend/src/types/api.d.ts
+git diff your_frontend/src/types/api.d.ts
 ```

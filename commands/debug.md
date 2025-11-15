@@ -1,6 +1,6 @@
 # Debug - Debugging Assistant
 
-Intelligent debugging assistant that helps diagnose and fix issues across the TopStepX stack.
+Intelligent debugging assistant that helps diagnose and fix issues across the YourProject stack.
 
 ## What This Skill Does
 
@@ -28,13 +28,13 @@ Provides guided debugging workflows:
 ### General Health Check
 ```bash
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  TopStepX Debugging - Health Check"
+echo "  YourProject Debugging - Health Check"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
 # 1. Check services running
 echo ""
 echo "Services:"
-ps aux | grep "[p]ython -m topstepx_backend" && echo "  Backend: RUNNING" || echo "  Backend: STOPPED ✗"
+ps aux | grep "[p]ython -m your_backend" && echo "  Backend: RUNNING" || echo "  Backend: STOPPED ✗"
 ps aux | grep "[v]ite" && echo "  Frontend: RUNNING" || echo "  Frontend: STOPPED ✗"
 
 # 2. Check ports
@@ -67,7 +67,7 @@ grep -i "error\|failed" /tmp/vite_vibe.err 2>/dev/null | tail -3 || echo "    No
 echo "Backend Debugging..."
 
 # Check if running
-if ! ps aux | grep -q "[p]ython -m topstepx_backend"; then
+if ! ps aux | grep -q "[p]ython -m your_backend"; then
   echo "✗ Backend not running!"
   echo "  Start with: make backend-start"
   exit 1
@@ -75,11 +75,11 @@ fi
 
 # Check imports
 echo "Testing backend imports..."
-if python3 -c "import topstepx_backend" 2>/dev/null; then
+if python3 -c "import your_backend" 2>/dev/null; then
   echo "✓ Backend imports OK"
 else
   echo "✗ Backend import failed!"
-  python3 -c "import topstepx_backend"  # Show error
+  python3 -c "import your_backend"  # Show error
   exit 1
 fi
 
@@ -260,7 +260,7 @@ make openapi && make types
 
 # Fix: Frontend stuck
 make frontend-stop
-rm -rf topstepx_frontend/node_modules/.vite
+rm -rf your_frontend/node_modules/.vite
 make frontend-start
 
 # Fix: Everything is broken

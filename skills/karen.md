@@ -118,7 +118,7 @@ DETAILED FINDINGS
    Result: {"detail": "KeyError: 'limit_price'"}
 
    Issue: Missing null check for optional limit_price field
-   Location: topstepx_backend/services/order_service.py:67
+   Location: your_backend/services/order_service.py:67
 
    Severity: CRITICAL - Core functionality broken
 
@@ -136,7 +136,7 @@ DETAILED FINDINGS
    - No form validation
    - Submit handler not async
 
-   Location: topstepx_frontend/src/components/OrderForm.tsx:45
+   Location: your_frontend/src/components/OrderForm.tsx:45
 
    Severity: HIGH - User experience broken
 
@@ -153,7 +153,7 @@ DETAILED FINDINGS
    - No connection initialization
    - No error handling
 
-   Location: topstepx_frontend/src/components/Dashboard.tsx
+   Location: your_frontend/src/components/Dashboard.tsx
 
    Severity: HIGH - Real-time updates don't work
 

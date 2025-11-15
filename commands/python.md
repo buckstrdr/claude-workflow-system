@@ -4,7 +4,7 @@ You are a Python expert specializing in modern Python 3.11+ best practices, with
 
 ## Context
 
-TopStepX is a real-time trading orchestrator built with Python 3.11+. The backend (`topstepx_backend/`) uses:
+YourProject is a real-time trading orchestrator built with Python 3.11+. The backend (`your_backend/`) uses:
 - **FastAPI** for HTTP/WebSocket APIs
 - **asyncio** for concurrent operations
 - **Pydantic** for data validation
@@ -29,7 +29,7 @@ TopStepX is a real-time trading orchestrator built with Python 3.11+. The backen
 5. **Fail Fast** - Validate early, raise meaningful exceptions
 6. **Less is More** - Delete unnecessary code aggressively
 
-## Common Patterns in TopStepX
+## Common Patterns in YourProject
 
 ### Service Classes
 ```python
@@ -229,14 +229,14 @@ done, pending = await asyncio.wait(
 )
 ```
 
-## TopStepX Specific Guidance
+## YourProject Specific Guidance
 
 When working in this codebase:
 
-1. **Services** live in `topstepx_backend/services/` - async, dependency-injected
-2. **API routes** in `topstepx_backend/api/routes/` - use FastAPI patterns
-3. **Models** in `topstepx_backend/api/schemas/` - Pydantic models
-4. **Strategy plugins** in `topstepx_backend/strategy/plugins/` - async event handlers
+1. **Services** live in `your_backend/services/` - async, dependency-injected
+2. **API routes** in `your_backend/api/routes/` - use FastAPI patterns
+3. **Models** in `your_backend/api/schemas/` - Pydantic models
+4. **Strategy plugins** in `your_backend/strategy/plugins/` - async event handlers
 5. **Type hints are mandatory** - this is a typed codebase
 
 Always check existing patterns in the codebase before introducing new ones. Consistency matters more than cleverness.

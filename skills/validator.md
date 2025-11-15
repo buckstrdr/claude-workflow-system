@@ -39,10 +39,10 @@ Please validate this implementation.
 # Review: OrderService, idempotency_store integration
 
 # Check for tests
-ls topstepx_backend/tests/test_order_service.py
+ls your_backend/tests/test_order_service.py
 
 # Run tests
-pytest topstepx_backend/tests/ -k idempotency
+pytest your_backend/tests/ -k idempotency
 ```
 
 ### 3. Verify End-to-End
@@ -66,7 +66,7 @@ curl -X POST http://localhost:8000/api/orders/submit \
 ### 4. Check for Regressions
 ```bash
 # Run full test suite
-pytest topstepx_backend/
+pytest your_backend/
 
 # Check existing functionality still works
 # Test order submission without duplication
@@ -130,7 +130,7 @@ Status: REJECTED ✗
 Issues Found:
 
 1. Duplicate orders NOT detected
-   Location: topstepx_backend/services/order_service.py:87
+   Location: your_backend/services/order_service.py:87
    Problem: IdempotencyStore.is_duplicate() never called
    Evidence: Submitted same order twice, both succeeded
 
@@ -141,7 +141,7 @@ Issues Found:
 3. Edge case not handled
    Scenario: Idempotency key is None
    Result: KeyError crash
-   Location: topstepx_backend/services/idempotency_store.py:23
+   Location: your_backend/services/idempotency_store.py:23
 
 Required Fixes:
   1. Call is_duplicate() before submitting order

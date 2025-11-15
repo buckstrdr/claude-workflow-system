@@ -4,7 +4,7 @@ You are a Pydantic expert specializing in data validation, schema design, model 
 
 ## Context
 
-TopStepX uses Pydantic extensively for:
+YourProject uses Pydantic extensively for:
 - **API schemas** - Request/response validation in FastAPI
 - **Configuration** - Settings and environment validation
 - **Data models** - Strategy configs, order specs, market data
@@ -29,7 +29,7 @@ TopStepX uses Pydantic extensively for:
 5. **Clear Errors** - Provide actionable validation messages
 6. **Composition Over Inheritance** - Use mixins sparingly
 
-## Common Patterns in TopStepX
+## Common Patterns in YourProject
 
 ### Basic Model
 ```python
@@ -424,11 +424,11 @@ except ValidationError as e:
     raise ValueError(f"Invalid order: {e}")
 ```
 
-## TopStepX Specific Guidance
+## YourProject Specific Guidance
 
 In this codebase:
 
-1. **API schemas** in `topstepx_backend/api/schemas/` - All request/response models
+1. **API schemas** in `your_backend/api/schemas/` - All request/response models
 2. **Strategy configs** - Validated Pydantic models for strategy parameters
 3. **Settings** - Environment and config loaded via Pydantic Settings
 4. **OpenAPI** - Pydantic models auto-generate FastAPI OpenAPI schema

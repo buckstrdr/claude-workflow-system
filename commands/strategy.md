@@ -23,14 +23,14 @@ Manage trading strategy operations, configuration, execution, and debugging.
 
 ### List Strategies
 ```bash
-ls topstepx_backend/strategy/plugins/*.py
+ls your_backend/strategy/plugins/*.py
 ```
 
 ### Test Configuration
 ```python
 # Validate strategy config JSON
 python -c "
-from topstepx_backend.api.schemas.strategies import StrategyConfig
+from your_backend.api.schemas.strategies import StrategyConfig
 import json
 
 with open('strategy_config.json') as f:
@@ -62,6 +62,6 @@ python dev/smoke/test_strategies_imports.py
 ## Quick Reference
 
 Common strategy files:
-- `topstepx_backend/strategy/plugins/` - Strategy implementations
-- `topstepx_backend/strategy/policies/` - Exit policies
-- `topstepx_backend/api/schemas/strategies.py` - Config schemas
+- `your_backend/strategy/plugins/` - Strategy implementations
+- `your_backend/strategy/policies/` - Exit policies
+- `your_backend/api/schemas/strategies.py` - Config schemas

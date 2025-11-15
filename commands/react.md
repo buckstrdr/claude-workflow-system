@@ -4,7 +4,7 @@ You are a React expert specializing in modern React 18+ patterns, hooks, perform
 
 ## Context
 
-TopStepX frontend (`topstepx_frontend/`) is built with:
+YourProject frontend (`your_frontend/`) is built with:
 - **React 18+** with modern hooks
 - **TypeScript** for type safety
 - **Vite** as build tool
@@ -30,7 +30,7 @@ TopStepX frontend (`topstepx_frontend/`) is built with:
 5. **Controlled Components** - Single source of truth
 6. **Declarative UI** - Describe what, not how
 
-## Common Patterns in TopStepX
+## Common Patterns in YourProject
 
 ### Component Structure
 ```tsx
@@ -333,14 +333,14 @@ const countRef = useRef(0);
 countRef.current += 1;
 ```
 
-## TopStepX Specific Guidance
+## YourProject Specific Guidance
 
 When working in this codebase:
 
-1. **Components** live in `topstepx_frontend/src/components/` - organized by domain
-2. **Store** in `topstepx_frontend/src/store/` - Zustand slices
-3. **Types** in `topstepx_frontend/src/types/api.d.ts` - auto-generated from backend
-4. **Hooks** in `topstepx_frontend/src/hooks/` - reusable logic
+1. **Components** live in `your_frontend/src/components/` - organized by domain
+2. **Store** in `your_frontend/src/store/` - Zustand slices
+3. **Types** in `your_frontend/src/types/api.d.ts` - auto-generated from backend
+4. **Hooks** in `your_frontend/src/hooks/` - reusable logic
 5. **Real-time data** flows through WebSocket → Zustand → Components
 
 Always check existing component patterns before creating new ones. The codebase values consistency and simplicity over clever abstractions.

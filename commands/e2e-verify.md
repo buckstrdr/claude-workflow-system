@@ -37,7 +37,7 @@ EXIT_CODE=0
 
 # 1. Server starts
 echo "→ Starting backend server..."
-nohup python -m topstepx_backend > /tmp/e2e_backend.log 2>&1 &
+nohup python -m your_backend > /tmp/e2e_backend.log 2>&1 &
 BACKEND_PID=$!
 
 # Wait for server to start
@@ -141,7 +141,7 @@ echo "  E2E Verification: Frontend"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-cd topstepx_frontend
+cd your_frontend
 
 # 1. Build succeeds
 echo "→ Building frontend..."
@@ -232,9 +232,9 @@ echo ""
 
 # Start both backend and frontend
 echo "→ Starting full stack..."
-nohup python -m topstepx_backend > /tmp/e2e_backend_full.log 2>&1 &
+nohup python -m your_backend > /tmp/e2e_backend_full.log 2>&1 &
 BACKEND_PID=$!
-cd topstepx_frontend
+cd your_frontend
 nohup npm run dev > /tmp/e2e_fe_full.log 2>&1 &
 FE_PID=$!
 cd ..
@@ -308,7 +308,7 @@ if echo "$RECENT_COMMITS" | grep -qi "order\|trade"; then
   echo "→ Testing order submission feature..."
 
   # Start backend
-  python -m topstepx_backend &
+  python -m your_backend &
   BACKEND_PID=$!
   sleep 5
 
@@ -338,7 +338,7 @@ fi
 if echo "$RECENT_COMMITS" | grep -qi "websocket\|ws\|realtime"; then
   echo "→ Testing WebSocket feature..."
 
-  python -m topstepx_backend &
+  python -m your_backend &
   BACKEND_PID=$!
   sleep 5
 

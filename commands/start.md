@@ -1,6 +1,6 @@
 # Start - Smart Stack Startup
 
-Start the TopStepX development stack intelligently, handling dependencies and health checks.
+Start the YourProject development stack intelligently, handling dependencies and health checks.
 
 ## What This Skill Does
 
@@ -46,7 +46,7 @@ Optional: Start specific components only
 2. **Start Backend**
    ```bash
    # Check if already running
-   ps aux | grep "[p]ython -m topstepx_backend" | grep -v grep
+   ps aux | grep "[p]ython -m your_backend" | grep -v grep
 
    # If not running, start in background
    if [ $? -ne 0 ]; then
@@ -98,7 +98,7 @@ Optional: Start specific components only
 4. **Final Status Report**
    ```
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-     TopStepX Development Stack Started
+     YourProject Development Stack Started
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
    Services:
@@ -175,7 +175,7 @@ If startup fails:
      1. Check logs: tail -f /tmp/backend_vibe.err
      2. Check ports: ss -ltnp | grep 8000
      3. Clean restart: /stop && /start
-     4. Manual start: cd topstepx_frontend && npm run dev
+     4. Manual start: cd your_frontend && npm run dev
    ```
 
 ## Tips

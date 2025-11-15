@@ -285,8 +285,8 @@ Preview:
 ## What Was Worked On
 - Feature: order_idempotency
 - Files modified:
-  - topstepx_backend/services/order_service.py
-  - topstepx_backend/tests/test_order_idempotency.py
+  - your_backend/services/order_service.py
+  - your_backend/tests/test_order_idempotency.py
 
 ## Quality Gate Status
 - Current Gate: 5/7 (Integrated)

@@ -4,7 +4,7 @@ You are a Tailwind CSS expert specializing in utility-first design, responsive l
 
 ## Context
 
-TopStepX frontend uses Tailwind CSS for:
+YourProject frontend uses Tailwind CSS for:
 - **Utility-first styling** - No custom CSS files
 - **Responsive design** - Mobile-first breakpoints
 - **Dark mode** - Optional dark theme support
@@ -29,7 +29,7 @@ TopStepX frontend uses Tailwind CSS for:
 5. **Consistency** - Follow design system spacing/colors
 6. **Performance** - Purge unused classes in production
 
-## Common Patterns in TopStepX
+## Common Patterns in YourProject
 
 ### Layout Patterns
 ```tsx
@@ -357,7 +357,7 @@ xl: 1280px  // Desktops
 <div className="transition-all duration-300 ease-in-out">
 ```
 
-## TopStepX Specific Guidance
+## YourProject Specific Guidance
 
 When working in this codebase:
 

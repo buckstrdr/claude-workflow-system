@@ -16,7 +16,7 @@ Systematically verifies UI changes work correctly using Playwright automation:
 ## When to Use
 
 **AUTOMATIC triggers** (you MUST run this):
-- After modifying any file in `topstepx_frontend/src/`
+- After modifying any file in `your_frontend/src/`
 - After changing React components
 - After updating UI logic or state management
 - After modifying styles (CSS/Tailwind)
@@ -40,12 +40,12 @@ echo ""
 echo "→ Step 1: Checking servers..."
 
 # Check backend
-BACKEND_PID=$(pgrep -f "python.*topstepx_backend" || echo "")
+BACKEND_PID=$(pgrep -f "python.*your_backend" || echo "")
 if [ -z "$BACKEND_PID" ]; then
   echo "❌ Backend NOT running"
   echo ""
   echo "Starting backend..."
-  nohup python -m topstepx_backend > /tmp/topstepx_backend.log 2>&1 &
+  nohup python -m your_backend > /tmp/your_backend.log 2>&1 &
   BACKEND_PID=$!
   echo "Backend PID: $BACKEND_PID"
   sleep 5
@@ -57,18 +57,18 @@ fi
 HEALTH_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health 2>/dev/null || echo "000")
 if [ "$HEALTH_CODE" != "200" ]; then
   echo "❌ Backend health check failed (HTTP $HEALTH_CODE)"
-  echo "Check logs: tail -50 /tmp/topstepx_backend.log"
+  echo "Check logs: tail -50 /tmp/your_backend.log"
   exit 1
 fi
 echo "✓ Backend health: OK"
 
 # Check frontend
-FRONTEND_PID=$(pgrep -f "vite.*topstepx_frontend" || echo "")
+FRONTEND_PID=$(pgrep -f "vite.*your_frontend" || echo "")
 if [ -z "$FRONTEND_PID" ]; then
   echo "❌ Frontend NOT running"
   echo ""
   echo "Starting frontend..."
-  cd topstepx_frontend
+  cd your_frontend
   npm run dev > /tmp/frontend_dev.log 2>&1 &
   FRONTEND_PID=$!
   echo "Frontend PID: $FRONTEND_PID"
@@ -156,7 +156,7 @@ mcp__playwright__browser_take_screenshot({
   fullPage: true  // Capture entire page, not just viewport
 })
 
-// Screenshot saved to: /home/buckstrdr/TopStepx/.playwright-mcp/.ian/ui_verify_{timestamp}.png
+// Screenshot saved to: /path/to/your/project/.playwright-mcp/.ian/ui_verify_{timestamp}.png
 ```
 
 **IMPORTANT**: Screenshot is saved in `.playwright-mcp/.ian/` by Playwright MCP
@@ -363,7 +363,7 @@ mcp__playwright__browser_type({
 ### Issue: "Backend not running"
 ```bash
 # Start backend
-nohup python -m topstepx_backend > /tmp/topstepx_backend.log 2>&1 &
+nohup python -m your_backend > /tmp/your_backend.log 2>&1 &
 sleep 5
 curl http://localhost:8000/health
 ```
@@ -371,7 +371,7 @@ curl http://localhost:8000/health
 ### Issue: "Frontend not running"
 ```bash
 # Start frontend
-cd topstepx_frontend
+cd your_frontend
 npm run dev > /tmp/frontend_dev.log 2>&1 &
 cd ..
 sleep 5
@@ -405,7 +405,7 @@ mkdir -p .playwright-mcp/.ian/
 ## Enforcement Rules
 
 **MANDATORY**:
-1. Run /ui-verify after ANY `topstepx_frontend/src/` changes
+1. Run /ui-verify after ANY `your_frontend/src/` changes
 2. Take screenshot at 1920x1080 (full page)
 3. Check console logs for critical errors
 4. Verify key UI elements present

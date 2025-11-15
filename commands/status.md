@@ -1,6 +1,6 @@
 # Status - System Health Dashboard
 
-Generate a comprehensive status report of the TopStepX development environment.
+Generate a comprehensive status report of the YourProject development environment.
 
 ## What This Skill Does
 
@@ -26,7 +26,7 @@ Simply invoke this skill to get a health dashboard:
 Check the following in parallel:
 
 1. **Backend Status**
-   - Check if process running: `ps aux | grep "[p]ython -m topstepx_backend"`
+   - Check if process running: `ps aux | grep "[p]ython -m your_backend"`
    - Test health endpoint: `curl -s http://localhost:8000/health`
    - Show PID, CPU, memory if running
 
@@ -48,7 +48,7 @@ Check the following in parallel:
 5. **Schema Sync Status**
    - Check OpenAPI exists: `test -f .serena/knowledge/openapi.json`
    - Check semantic index: `test -f .serena/graphs/semantic.index`
-   - Check frontend types: `test -f topstepx_frontend/src/types/api.d.ts`
+   - Check frontend types: `test -f your_frontend/src/types/api.d.ts`
 
 6. **Recent Errors**
    - Backend errors: `tail -50 /tmp/backend_vibe.err | grep -i error | tail -5`
@@ -65,7 +65,7 @@ Present results in a clear, scannable format:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  TopStepX Status Dashboard
+  YourProject Status Dashboard
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Services:

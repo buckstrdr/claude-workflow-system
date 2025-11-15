@@ -37,7 +37,7 @@ EXIT_CODE=0
 
 # 1. Server starts
 echo "→ Starting backend server..."
-nohup python -m topstepx_backend > /tmp/e2e_backend.log 2>&1 &
+nohup python -m your_backend > /tmp/e2e_backend.log 2>&1 &
 BACKEND_PID=$!
 
 # Wait for server to start
@@ -141,7 +141,7 @@ echo "  E2E Verification: Frontend"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-cd topstepx_frontend
+cd your_frontend
 
 # 1. Build succeeds
 echo "→ Building frontend..."
@@ -233,19 +233,19 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # Ensure both servers are running
-BACKEND_RUNNING=$(pgrep -f "python.*topstepx_backend" || echo "")
-FRONTEND_RUNNING=$(pgrep -f "vite.*topstepx_frontend" || echo "")
+BACKEND_RUNNING=$(pgrep -f "python.*your_backend" || echo "")
+FRONTEND_RUNNING=$(pgrep -f "vite.*your_frontend" || echo "")
 
 if [ -z "$BACKEND_RUNNING" ] || [ -z "$FRONTEND_RUNNING" ]; then
   echo "⚠️  Starting servers for UI verification..."
 
   if [ -z "$BACKEND_RUNNING" ]; then
-    nohup python -m topstepx_backend > /tmp/e2e_backend_ui.log 2>&1 &
+    nohup python -m your_backend > /tmp/e2e_backend_ui.log 2>&1 &
     sleep 5
   fi
 
   if [ -z "$FRONTEND_RUNNING" ]; then
-    cd topstepx_frontend
+    cd your_frontend
     nohup npm run dev > /tmp/e2e_fe_ui.log 2>&1 &
     cd ..
     sleep 5
@@ -360,9 +360,9 @@ echo ""
 
 # Start both backend and frontend
 echo "→ Starting full stack..."
-nohup python -m topstepx_backend > /tmp/e2e_backend_full.log 2>&1 &
+nohup python -m your_backend > /tmp/e2e_backend_full.log 2>&1 &
 BACKEND_PID=$!
-cd topstepx_frontend
+cd your_frontend
 nohup npm run dev > /tmp/e2e_fe_full.log 2>&1 &
 FE_PID=$!
 cd ..
@@ -436,7 +436,7 @@ if echo "$RECENT_COMMITS" | grep -qi "order\|trade"; then
   echo "→ Testing order submission feature..."
 
   # Start backend
-  python -m topstepx_backend &
+  python -m your_backend &
   BACKEND_PID=$!
   sleep 5
 
@@ -466,7 +466,7 @@ fi
 if echo "$RECENT_COMMITS" | grep -qi "websocket\|ws\|realtime"; then
   echo "→ Testing WebSocket feature..."
 
-  python -m topstepx_backend &
+  python -m your_backend &
   BACKEND_PID=$!
   sleep 5
 

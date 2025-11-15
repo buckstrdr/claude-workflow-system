@@ -75,10 +75,10 @@ grep "Status: Approved" $(ls .ian/spec_*.md | tail -1)
 **Verification:**
 ```bash
 # Check if tests exist
-find topstepx_backend/tests/ -name "test_*.py" -newer .ian/spec_*.md
+find your_backend/tests/ -name "test_*.py" -newer .ian/spec_*.md
 
 # Check if tests are failing (Red phase)
-python -m pytest topstepx_backend/tests/ -v
+python -m pytest your_backend/tests/ -v
 # Should see failures - implementation doesn't exist yet
 ```
 
@@ -98,13 +98,13 @@ python -m pytest topstepx_backend/tests/ -v
 **Verification:**
 ```bash
 # All tests passing
-python -m pytest topstepx_backend/tests/ -v
+python -m pytest your_backend/tests/ -v
 
 # No TODOs
-grep -r "TODO\|FIXME" topstepx_backend/ --exclude-dir="tests" || echo "Clean"
+grep -r "TODO\|FIXME" your_backend/ --exclude-dir="tests" || echo "Clean"
 
 # No debug statements
-grep -r "print\|console.log\|debugger\|pdb" topstepx_backend/ --exclude-dir="tests" || echo "Clean"
+grep -r "print\|console.log\|debugger\|pdb" your_backend/ --exclude-dir="tests" || echo "Clean"
 ```
 
 **Next Action:** Refactor for quality (DRY, SOLID, readability)
@@ -124,11 +124,11 @@ grep -r "print\|console.log\|debugger\|pdb" topstepx_backend/ --exclude-dir="tes
 **Verification:**
 ```bash
 # Tests still passing after refactor
-python -m pytest topstepx_backend/tests/ -v
+python -m pytest your_backend/tests/ -v
 
 # Check code complexity (basic heuristics)
 # Long functions (>50 lines)
-find topstepx_backend/ -name "*.py" -exec awk '/^def / {start=NR} /^def /||/^class / {if(start && NR-start>50) print FILENAME":"start; start=0}' {} \;
+find your_backend/ -name "*.py" -exec awk '/^def / {start=NR} /^def /||/^class / {if(start && NR-start>50) print FILENAME":"start; start=0}' {} \;
 
 # Duplicate code detection (simple)
 # Look for repeated patterns manually or use tools
@@ -160,7 +160,7 @@ make semantic
 git status --short
 
 # Verify no TypeScript errors in frontend
-cd topstepx_frontend && npm run type-check
+cd your_frontend && npm run type-check
 ```
 
 **Next Action:** Run end-to-end verification
@@ -270,7 +270,7 @@ Gate 3 Requirements:
   ✅ No debug statements
 
 Blockers:
-  • 3 TODOs found in topstepx_backend/services/order_service.py:42,67,89
+  • 3 TODOs found in your_backend/services/order_service.py:42,67,89
 
 Recommended Actions:
   1. Remove or address TODOs

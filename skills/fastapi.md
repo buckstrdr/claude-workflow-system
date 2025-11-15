@@ -4,7 +4,7 @@ You are a FastAPI expert specializing in modern API design, async patterns, depe
 
 ## Context
 
-TopStepX backend uses FastAPI for:
+YourProject backend uses FastAPI for:
 - **REST API** endpoints (`/api/*`)
 - **WebSocket** connections for real-time data
 - **OpenAPI** schema generation (auto-synced to frontend)
@@ -30,13 +30,13 @@ TopStepX backend uses FastAPI for:
 5. **Error Handling** - Meaningful HTTP status codes
 6. **Separation of Concerns** - Routers, services, schemas
 
-## Common Patterns in TopStepX
+## Common Patterns in YourProject
 
 ### Router Structure
 ```python
 from fastapi import APIRouter, Depends, HTTPException, status
-from topstepx_backend.api.schemas import OrderRequest, OrderResponse
-from topstepx_backend.services import OrderService
+from your_backend.api.schemas import OrderRequest, OrderResponse
+from your_backend.services import OrderService
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 
@@ -357,7 +357,7 @@ async def get_config(
 from fastapi import FastAPI
 
 app = FastAPI(
-    title="TopStepX API",
+    title="YourProject API",
     description="Real-time trading orchestrator API",
     version="1.0.0",
     openapi_tags=[
@@ -387,13 +387,13 @@ async def get_order(order_id: str) -> OrderResponse:
     ...
 ```
 
-## TopStepX Specific Guidance
+## YourProject Specific Guidance
 
 When working in this codebase:
 
-1. **Routes** in `topstepx_backend/api/routes/` - one file per domain
-2. **Schemas** in `topstepx_backend/api/schemas/` - Pydantic models
-3. **Services** in `topstepx_backend/services/` - business logic
+1. **Routes** in `your_backend/api/routes/` - one file per domain
+2. **Schemas** in `your_backend/api/schemas/` - Pydantic models
+3. **Services** in `your_backend/services/` - business logic
 4. **Run `make openapi`** after schema changes to update OpenAPI spec
 5. **Run `make types`** to sync frontend TypeScript types
 

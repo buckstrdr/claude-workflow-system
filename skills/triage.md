@@ -1,6 +1,6 @@
 # Triage - GitHub Issue Triage
 
-Automated GitHub issue triage workflow for TopStepX issues.
+Automated GitHub issue triage workflow for YourProject issues.
 
 ## What This Skill Does
 
@@ -57,7 +57,7 @@ git log --oneline --grep="related keyword" -10
 
 The issue describes orders being rejected with "invalid quantity" error despite valid input.
 
-Relevant code: `topstepx_backend/services/order_service.py:67`
+Relevant code: `your_backend/services/order_service.py:67`
 
 ### Reproduction Steps
 
@@ -118,7 +118,7 @@ Type: Bug
 
 Root Cause:
   Type mismatch in quantity validation
-  Location: topstepx_backend/services/order_service.py:67
+  Location: your_backend/services/order_service.py:67
 
 Reproduction:
   1. Submit order via API

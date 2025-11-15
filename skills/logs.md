@@ -1,6 +1,6 @@
 # Logs - Log Viewer and Analyzer
 
-View, filter, and analyze logs from TopStepX services.
+View, filter, and analyze logs from YourProject services.
 
 ## What This Skill Does
 
@@ -172,7 +172,7 @@ Log Files:
   Git MCP:         /tmp/mcp-git.log
 
 Application Logs:
-  Main log:        logs/topstepx.log (if exists)
+  Main log:        logs/app.log (if exists)
   Strategy logs:   Check backend endpoints: /api/logs/*
 ```
 
@@ -214,7 +214,7 @@ I see several errors. Let me analyze:
    [Show context from logs]
 
    Likely Cause: Order quantity too large for available margin
-   Location: topstepx_backend/services/order_service.py:142
+   Location: your_backend/services/order_service.py:142
 
    Suggested Fix: Check account margin before submitting orders
 

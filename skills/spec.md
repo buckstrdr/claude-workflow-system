@@ -137,9 +137,9 @@ Response: {
 ## 5. Implementation Plan
 
 ### Files to Create/Modify
-- `topstepx_backend/services/order_service.py` - Add idempotency check
-- `topstepx_backend/models/idempotency.py` - New model
-- `topstepx_backend/tests/test_order_idempotency.py` - Test suite
+- `your_backend/services/order_service.py` - Add idempotency check
+- `your_backend/models/idempotency.py` - New model
+- `your_backend/tests/test_order_idempotency.py` - Test suite
 
 ### Key Components
 1. {Component 1}: {Purpose and responsibility}

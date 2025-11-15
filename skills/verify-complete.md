@@ -31,7 +31,7 @@ Blocks marking work "complete" until ALL checks pass.
 
 ```bash
 # No TODOs in production code
-TODOS=$(grep -r "TODO\|FIXME\|XXX\|HACK" topstepx_backend/ topstepx_frontend/ --exclude-dir="tests" --exclude-dir="__pycache__" --exclude-dir="node_modules" 2>/dev/null || true)
+TODOS=$(grep -r "TODO\|FIXME\|XXX\|HACK" your_backend/ your_frontend/ --exclude-dir="tests" --exclude-dir="__pycache__" --exclude-dir="node_modules" 2>/dev/null || true)
 
 if [ -n "$TODOS" ]; then
   echo "❌ Code Quality: TODO/FIXME found in production code"
@@ -42,7 +42,7 @@ else
 fi
 
 # No commented-out code
-COMMENTED=$(grep -rE "^[[:space:]]*#[[:space:]]*(def |class |import |from )" topstepx_backend/ --exclude-dir="tests" --exclude-dir="__pycache__" 2>/dev/null || true)
+COMMENTED=$(grep -rE "^[[:space:]]*#[[:space:]]*(def |class |import |from )" your_backend/ --exclude-dir="tests" --exclude-dir="__pycache__" 2>/dev/null || true)
 
 if [ -n "$COMMENTED" ]; then
   echo "⚠️  Code Quality: Commented-out code detected"
@@ -50,7 +50,7 @@ if [ -n "$COMMENTED" ]; then
 fi
 
 # No debug statements
-DEBUG=$(grep -rE "(console\.log|print\(|debugger|pdb\.set_trace)" topstepx_backend/ topstepx_frontend/src/ --exclude-dir="tests" --exclude-dir="__pycache__" --exclude-dir="node_modules" 2>/dev/null || true)
+DEBUG=$(grep -rE "(console\.log|print\(|debugger|pdb\.set_trace)" your_backend/ your_frontend/src/ --exclude-dir="tests" --exclude-dir="__pycache__" --exclude-dir="node_modules" 2>/dev/null || true)
 
 if [ -n "$DEBUG" ]; then
   echo "❌ Code Quality: Debug statements found"
@@ -74,13 +74,13 @@ fi
 
 ```bash
 # Tests exist for changed code
-CHANGED_PY=$(git diff HEAD~1 --name-only | grep "topstepx_backend/.*\.py$" | grep -v "tests/" | grep -v "__pycache__" || true)
-CHANGED_JS=$(git diff HEAD~1 --name-only | grep "topstepx_frontend/src/.*\.(tsx?|jsx?)$" | grep -v "\.test\." | grep -v "\.spec\." || true)
+CHANGED_PY=$(git diff HEAD~1 --name-only | grep "your_backend/.*\.py$" | grep -v "tests/" | grep -v "__pycache__" || true)
+CHANGED_JS=$(git diff HEAD~1 --name-only | grep "your_frontend/src/.*\.(tsx?|jsx?)$" | grep -v "\.test\." | grep -v "\.spec\." || true)
 
 if [ -n "$CHANGED_PY" ]; then
   for file in $CHANGED_PY; do
     # Convert path to test path
-    TEST_FILE=$(echo "$file" | sed 's|topstepx_backend/|topstepx_backend/tests/test_|')
+    TEST_FILE=$(echo "$file" | sed 's|your_backend/|your_backend/tests/test_|')
     if [ ! -f "$TEST_FILE" ]; then
       echo "⚠️  Tests: No test file for $file"
       echo "  Expected: $TEST_FILE"
@@ -90,7 +90,7 @@ fi
 
 # Run tests
 echo "→ Running backend tests..."
-if python -m pytest topstepx_backend/tests/ -v 2>/dev/null; then
+if python -m pytest your_backend/tests/ -v 2>/dev/null; then
   echo "✓ Tests: Backend tests passing"
 else
   echo "❌ Tests: Backend tests FAILING"
@@ -98,7 +98,7 @@ else
 fi
 
 # Check test coverage on changed files
-COVERAGE=$(python -m pytest topstepx_backend/tests/ --cov=topstepx_backend --cov-report=term-missing 2>/dev/null | tail -20)
+COVERAGE=$(python -m pytest your_backend/tests/ --cov=your_backend --cov-report=term-missing 2>/dev/null | tail -20)
 echo "$COVERAGE"
 
 # Extract coverage percentage for changed files
@@ -110,13 +110,13 @@ else
 fi
 
 # Check for edge case tests
-EDGE_TESTS=$(grep -r "edge\|boundary\|limit" topstepx_backend/tests/ || true)
+EDGE_TESTS=$(grep -r "edge\|boundary\|limit" your_backend/tests/ || true)
 if [ -z "$EDGE_TESTS" ]; then
   echo "⚠️  Tests: No edge case tests detected"
 fi
 
 # Check for error case tests
-ERROR_TESTS=$(grep -r "error\|exception\|invalid" topstepx_backend/tests/ || true)
+ERROR_TESTS=$(grep -r "error\|exception\|invalid" your_backend/tests/ || true)
 if [ -z "$ERROR_TESTS" ]; then
   echo "⚠️  Tests: No error case tests detected"
 fi
@@ -126,7 +126,7 @@ fi
 
 ```bash
 # Function/class docstrings
-CHANGED_PY=$(git diff HEAD~1 --name-only | grep "topstepx_backend/.*\.py$" | grep -v "tests/" || true)
+CHANGED_PY=$(git diff HEAD~1 --name-only | grep "your_backend/.*\.py$" | grep -v "tests/" || true)
 
 for file in $CHANGED_PY; do
   # Check for docstrings
@@ -152,7 +152,7 @@ except: pass
 done
 
 # README updated if API changed
-if git diff HEAD~1 --name-only | grep -q "topstepx_backend/api/"; then
+if git diff HEAD~1 --name-only | grep -q "your_backend/api/"; then
   README_UPDATED=$(git diff HEAD~1 --name-only | grep -q "README\|CHANGELOG" && echo "yes" || echo "no")
   if [ "$README_UPDATED" = "no" ]; then
     echo "⚠️  Documentation: API changed but README/CHANGELOG not updated"
@@ -180,7 +180,7 @@ fi
 ```bash
 # Backend starts successfully
 echo "→ Checking backend can start..."
-if timeout 10 python -m topstepx_backend --help >/dev/null 2>&1; then
+if timeout 10 python -m your_backend --help >/dev/null 2>&1; then
   echo "✓ Integration: Backend imports successfully"
 else
   echo "❌ Integration: Backend CANNOT import"
@@ -189,7 +189,7 @@ fi
 
 # Frontend builds
 echo "→ Checking frontend build..."
-cd topstepx_frontend
+cd your_frontend
 if npm run build >/dev/null 2>&1; then
   echo "✓ Integration: Frontend builds successfully"
 else
@@ -199,7 +199,7 @@ fi
 cd ..
 
 # OpenAPI spec updated (if backend API changed)
-if git diff HEAD~1 --name-only | grep -q "topstepx_backend/api/"; then
+if git diff HEAD~1 --name-only | grep -q "your_backend/api/"; then
   OPENAPI_UPDATED=$(git diff HEAD~1 --name-only | grep -q ".serena/knowledge/openapi.json" && echo "yes" || echo "no")
   if [ "$OPENAPI_UPDATED" = "no" ]; then
     echo "⚠️  Integration: API changed but OpenAPI spec not regenerated"
@@ -212,7 +212,7 @@ fi
 
 # FE types synced (if OpenAPI changed)
 if git diff HEAD~1 --name-only | grep -q ".serena/knowledge/openapi.json"; then
-  TYPES_UPDATED=$(git diff HEAD~1 --name-only | grep -q "topstepx_frontend/src/types/api.d.ts" && echo "yes" || echo "no")
+  TYPES_UPDATED=$(git diff HEAD~1 --name-only | grep -q "your_frontend/src/types/api.d.ts" && echo "yes" || echo "no")
   if [ "$TYPES_UPDATED" = "no" ]; then
     echo "⚠️  Integration: OpenAPI changed but FE types not regenerated"
     echo "  Run: make types"
@@ -288,7 +288,7 @@ fi
 
 ```bash
 # No sensitive data
-SECRETS=$(grep -rE "(password|secret|token|api_key|private_key)" topstepx_backend/ topstepx_frontend/src/ --exclude-dir="tests" --exclude-dir="__pycache__" --exclude-dir="node_modules" | grep -v "\.env\." || true)
+SECRETS=$(grep -rE "(password|secret|token|api_key|private_key)" your_backend/ your_frontend/src/ --exclude-dir="tests" --exclude-dir="__pycache__" --exclude-dir="node_modules" | grep -v "\.env\." || true)
 if [ -n "$SECRETS" ]; then
   echo "❌ Production: Possible secrets in code:"
   echo "$SECRETS"
@@ -306,7 +306,7 @@ if git diff HEAD~1 --name-only | grep -q "models\.py"; then
 fi
 
 # Feature flags (if applicable)
-FEATURE_FLAGS=$(grep -r "feature_flag\|FEATURE_" topstepx_backend/ || true)
+FEATURE_FLAGS=$(grep -r "feature_flag\|FEATURE_" your_backend/ || true)
 if [ -n "$FEATURE_FLAGS" ]; then
   echo "✓ Production: Feature flags detected - verify configuration"
 fi

@@ -1,6 +1,6 @@
 # Find - Smart Code Search
 
-Intelligent code search across the TopStepX codebase using semantic search (Serena MCP) with fallback to pattern matching.
+Intelligent code search across the YourProject codebase using semantic search (Serena MCP) with fallback to pattern matching.
 
 ## What This Skill Does
 
@@ -51,11 +51,11 @@ except:
 ```
 Found via semantic search:
 
-1. topstepx_backend/services/order_service.py:45
+1. your_backend/services/order_service.py:45
    class OrderService:
        """Handles order submission and lifecycle management."""
 
-2. topstepx_backend/api/routes/orders.py:23
+2. your_backend/api/routes/orders.py:23
    async def submit_order(order: OrderRequest, service: OrderServiceDep):
        """Submit a new order to the exchange."""
 ```
@@ -83,13 +83,13 @@ Searching for symbol 'OrderService'...
 
 Found 3 definitions:
 
-1. topstepx_backend/services/order_service.py:45
+1. your_backend/services/order_service.py:45
    class OrderService:
 
-2. topstepx_backend/services/__init__.py:12
+2. your_backend/services/__init__.py:12
    from .order_service import OrderService
 
-3. topstepx_frontend/src/types/api.d.ts:234
+3. your_frontend/src/types/api.d.ts:234
    interface OrderService {
 ```
 
@@ -108,10 +108,10 @@ Query: async def.*submit.*order
 
 Pattern search results:
 
-1. topstepx_backend/services/order_service.py:87
+1. your_backend/services/order_service.py:87
    async def submit_order(self, order: OrderRequest) -> OrderResponse:
 
-2. topstepx_backend/api/routes/orders.py:34
+2. your_backend/api/routes/orders.py:34
    async def submit_order_endpoint(order: OrderRequest):
 ```
 
@@ -132,9 +132,9 @@ Query: order*.py
 
 File search results:
 
-1. topstepx_backend/api/routes/orders.py
-2. topstepx_backend/services/order_service.py
-3. topstepx_backend/api/schemas/orders.py
+1. your_backend/api/routes/orders.py
+2. your_backend/services/order_service.py
+3. your_backend/api/schemas/orders.py
 ```
 
 ### 5. Usage Search (Find Callers)
@@ -156,17 +156,17 @@ Query: usage submitOrder
 Finding usages of 'submitOrder'...
 
 Imported in:
-1. topstepx_backend/api/routes/orders.py:5
-   from topstepx_backend.services import OrderService
+1. your_backend/api/routes/orders.py:5
+   from your_backend.services import OrderService
 
 Used in:
-2. topstepx_backend/api/routes/orders.py:45
+2. your_backend/api/routes/orders.py:45
    result = await service.submit_order(order)
 
-3. topstepx_frontend/src/components/OrderForm.tsx:23
+3. your_frontend/src/components/OrderForm.tsx:23
    const { submitOrder } = useStore();
 
-4. topstepx_frontend/src/components/OrderForm.tsx:67
+4. your_frontend/src/components/OrderForm.tsx:67
    await submitOrder(orderData);
 ```
 
@@ -207,7 +207,7 @@ def interpret_query(query: str) -> SearchMethod:
 Provide context around matches:
 
 ```
-Found: topstepx_backend/services/order_service.py:87
+Found: your_backend/services/order_service.py:87
 
 Context:
   85:     async def validate_order(self, order: OrderRequest) -> None:
@@ -224,21 +224,21 @@ Context:
 
 Filter results by context:
 
-- Backend code: `topstepx_backend/**`
-- Frontend code: `topstepx_frontend/src/**`
-- API routes: `topstepx_backend/api/routes/**`
-- Services: `topstepx_backend/services/**`
-- Components: `topstepx_frontend/src/components/**`
+- Backend code: `your_backend/**`
+- Frontend code: `your_frontend/src/**`
+- API routes: `your_backend/api/routes/**`
+- Services: `your_backend/services/**`
+- Components: `your_frontend/src/components/**`
 - Types: `**/*.d.ts`, `**/schemas/**`
 
 ```
 Query: OrderService backend
 
-Searching in: topstepx_backend/**
+Searching in: your_backend/**
 
 Results:
-1. topstepx_backend/services/order_service.py:45
-2. topstepx_backend/api/routes/orders.py:12
+1. your_backend/services/order_service.py:45
+2. your_backend/api/routes/orders.py:12
 ```
 
 ## Output Format
@@ -251,11 +251,11 @@ Search: "order submission"
 Results (3 matches):
 
 Backend:
-  topstepx_backend/services/order_service.py:90
-  topstepx_backend/api/routes/orders.py:34
+  your_backend/services/order_service.py:90
+  your_backend/api/routes/orders.py:34
 
 Frontend:
-  topstepx_frontend/src/components/OrderForm.tsx:45
+  your_frontend/src/components/OrderForm.tsx:45
 
 Use Read tool with line numbers to view context.
 ```

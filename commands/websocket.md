@@ -4,7 +4,7 @@ You are a WebSocket expert specializing in connection management, message framin
 
 ## Context
 
-TopStepX uses WebSockets extensively for:
+YourProject uses WebSockets extensively for:
 - **Market data streaming** - Real-time bars, quotes, ticks
 - **Order updates** - Fill notifications, order status changes
 - **Position updates** - Real-time P&L, position changes
@@ -29,7 +29,7 @@ TopStepX uses WebSockets extensively for:
 5. **Idempotent Messages** - Allow replay without side effects
 6. **State Synchronization** - Resync after reconnection
 
-## Common Patterns in TopStepX
+## Common Patterns in YourProject
 
 ### FastAPI WebSocket Server
 ```python
@@ -430,11 +430,11 @@ logging.basicConfig(level=logging.DEBUG)
 # WebSocket connections and messages will be logged
 ```
 
-## TopStepX Specific Guidance
+## YourProject Specific Guidance
 
 In this codebase:
 
-1. **Backend WS** in `topstepx_backend/api/routes/` - FastAPI WebSocket endpoints
+1. **Backend WS** in `your_backend/api/routes/` - FastAPI WebSocket endpoints
 2. **Frontend hook** - Custom `useWebSocket` hook for React
 3. **Zustand integration** - WS updates go to Zustand store
 4. **SignalR** - Exchange gateway uses SignalR (different protocol)

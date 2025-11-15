@@ -4,7 +4,7 @@ You are a Zustand expert specializing in lightweight state management, store des
 
 ## Context
 
-TopStepX frontend uses Zustand for:
+YourProject frontend uses Zustand for:
 - **Global state** - Positions, orders, account data
 - **WebSocket state** - Connection status, real-time updates
 - **UI state** - Selected contracts, filters, preferences
@@ -29,7 +29,7 @@ TopStepX frontend uses Zustand for:
 5. **Single Responsibility** - One store per domain or split slices
 6. **TypeScript First** - Full type safety
 
-## Common Patterns in TopStepX
+## Common Patterns in YourProject
 
 ### Basic Store
 ```typescript
@@ -247,7 +247,7 @@ export const useStore = create<Store>()(
         set((state) => ({ count: state.count + 1 }), false, 'increment'),
       // Third param is action name in DevTools
     }),
-    { name: 'TopStepX Store' }
+    { name: 'YourProject Store' }
   )
 );
 ```
@@ -467,11 +467,11 @@ const useStore = create<Store>((set) => ({
 4. **Split stores** - Separate frequently vs rarely updated state
 5. **Batch updates** - Multiple `set` calls batch automatically
 
-## TopStepX Specific Guidance
+## YourProject Specific Guidance
 
 In this codebase:
 
-1. **Store** in `topstepx_frontend/src/store/` - Domain-specific slices
+1. **Store** in `your_frontend/src/store/` - Domain-specific slices
 2. **WebSocket updates** - Flow into Zustand store
 3. **Persistence** - Use for user preferences, not for trading data
 4. **DevTools** - Enable in development for debugging

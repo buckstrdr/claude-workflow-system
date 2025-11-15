@@ -1,6 +1,6 @@
-# TopStepX Claude Code Skills - Complete Library
+# YourProject Claude Code Skills - Complete Library
 
-Comprehensive skill library with 27 specialized skills for accelerated TopStepX development.
+Comprehensive skill library with 27 specialized skills for accelerated YourProject development.
 
 ## 📊 Complete Skill Library (27 Skills)
 

@@ -29,40 +29,40 @@ Intelligently runs tests based on what changed:
 # Detect what changed
 CHANGED_FILES=$(git diff --name-only HEAD)
 
-if echo "$CHANGED_FILES" | grep -q "topstepx_backend"; then
+if echo "$CHANGED_FILES" | grep -q "your_backend"; then
   echo "Backend changes detected, running pytest..."
-  pytest topstepx_backend/
+  pytest your_backend/
 fi
 
-if echo "$CHANGED_FILES" | grep -q "topstepx_frontend"; then
+if echo "$CHANGED_FILES" | grep -q "your_frontend"; then
   echo "Frontend changes detected, running npm test..."
-  cd topstepx_frontend && npm test
+  cd your_frontend && npm test
 fi
 
 if echo "$CHANGED_FILES" | grep -q "strategy"; then
   echo "Strategy changes detected, running strategy tests..."
-  pytest topstepx_backend/strategy/tests/
+  pytest your_backend/strategy/tests/
 fi
 ```
 
 ### Backend Tests
 ```bash
 # Run all backend tests
-pytest topstepx_backend/ -v
+pytest your_backend/ -v
 
 # Run with coverage
-pytest topstepx_backend/ --cov=topstepx_backend --cov-report=html
+pytest your_backend/ --cov=your_backend --cov-report=html
 
 # Run specific test file
-pytest topstepx_backend/tests/test_order_service.py
+pytest your_backend/tests/test_order_service.py
 
 # Run specific test
-pytest topstepx_backend/tests/test_order_service.py::test_submit_order
+pytest your_backend/tests/test_order_service.py::test_submit_order
 ```
 
 ### Frontend Tests
 ```bash
-cd topstepx_frontend
+cd your_frontend
 
 # Run all tests
 npm test
@@ -97,14 +97,14 @@ Backend Tests (pytest):
   ✓ test_order_service.py::test_cancel_order
   ✗ test_bracket_editor.py::test_bracket_creation
     Error: AssertionError: Expected status 'pending', got 'rejected'
-    File: topstepx_backend/tests/test_bracket_editor.py:45
+    File: your_backend/tests/test_bracket_editor.py:45
 
 Frontend Tests (npm):
   ✓ OrderForm.test.tsx
   ✓ PositionList.test.tsx
   ✗ Dashboard.test.tsx
     Error: Component did not render
-    File: topstepx_frontend/src/components/Dashboard.test.tsx:23
+    File: your_frontend/src/components/Dashboard.test.tsx:23
 
 Summary:
   Total: 5 tests
@@ -113,7 +113,7 @@ Summary:
 
 Failed Tests:
   1. test_bracket_editor.py::test_bracket_creation
-     topstepx_backend/tests/test_bracket_editor.py:45
+     your_backend/tests/test_bracket_editor.py:45
 
 Next Steps:
   - Fix failing tests
