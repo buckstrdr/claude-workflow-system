@@ -7,6 +7,9 @@ FEATURE_NAME="$1"
 BRANCH_NAME="feature/$FEATURE_NAME"
 WORKTREE_PATH="../wt-feature-$FEATURE_NAME"
 
+# Prune any missing worktrees first (cleanup from previous runs)
+git worktree prune 2>/dev/null || true
+
 # Check if worktree already exists
 if [ -d "$WORKTREE_PATH" ]; then
     echo "⚠️  Worktree already exists: $WORKTREE_PATH"
