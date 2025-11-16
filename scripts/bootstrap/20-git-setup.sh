@@ -23,11 +23,9 @@ else
     fi
 fi
 
-# Change to worktree directory for remaining operations
-cd "$WORKTREE_PATH"
-
-# Initialize quality gates (if script exists)
+# Initialize quality gates in main repo .git directory (if script exists)
 if [ -f ./scripts/quality-gates/gates-start.sh ]; then
+    # Quality gates are stored in main repo's .git, not worktree
     ./scripts/quality-gates/gates-start.sh "$FEATURE_NAME"
 else
     echo "⚠️  Quality gates script not found (optional)"
