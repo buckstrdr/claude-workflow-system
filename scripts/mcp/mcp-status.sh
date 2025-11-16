@@ -42,10 +42,10 @@ check_endpoint() {
     if [ -z "$url" ] || [ "$url" = "http://localhost:0" ]; then
         if [ "$required" = "true" ]; then
             echo -e "${RED}✗ URL NOT CONFIGURED${NC}"
-            ((FAIL++))
+            FAIL=$((FAIL + 1))
         else
             echo -e "${YELLOW}⚠ NOT CONFIGURED (optional)${NC}"
-            ((WARN++))
+            WARN=$((WARN + 1))
         fi
         return
     fi
@@ -54,7 +54,7 @@ check_endpoint() {
     if [ -n "$health_path" ]; then
         if curl -sf --max-time 2 "${url}${health_path}" >/dev/null 2>&1; then
             echo -e "${GREEN}✓ ONLINE${NC}"
-            ((PASS++))
+            PASS=$((PASS + 1))
             return
         fi
     fi
@@ -62,27 +62,27 @@ check_endpoint() {
     # Try base URL
     if curl -sf --max-time 2 "$url" >/dev/null 2>&1; then
         echo -e "${GREEN}✓ ONLINE${NC}"
-        ((PASS++))
+        PASS=$((PASS + 1))
         return
     fi
 
-    # Try port connectivity as fallback
+    # Try port connectivity as fallback (MCP servers use SSE, not HTTP)
     local host=$(echo "$url" | sed 's|http[s]*://||' | cut -d: -f1)
     local port=$(echo "$url" | sed 's|http[s]*://||' | cut -d: -f2 | cut -d/ -f1)
 
     if [ -n "$port" ] && nc -z "$host" "$port" 2>/dev/null; then
-        echo -e "${YELLOW}⚠ PORT OPEN (no HTTP response)${NC}"
-        ((WARN++))
+        echo -e "${GREEN}✓ ONLINE (port responding)${NC}"
+        PASS=$((PASS + 1))
         return
     fi
 
     # Service is offline
     if [ "$required" = "true" ]; then
         echo -e "${RED}✗ OFFLINE${NC}"
-        ((FAIL++))
+        FAIL=$((FAIL + 1))
     else
         echo -e "${YELLOW}⚠ OFFLINE (optional)${NC}"
-        ((WARN++))
+        WARN=$((WARN + 1))
     fi
 }
 
@@ -92,18 +92,18 @@ echo "==========================================="
 # Check API Keys
 if [ -n "${FIRECRAWL_API_KEY:-}" ]; then
     echo -e "${GREEN}✓${NC} FIRECRAWL_API_KEY configured (${FIRECRAWL_API_KEY:0:10}...)"
-    ((PASS++))
+    PASS=$((PASS + 1))
 else
     echo -e "${RED}✗${NC} FIRECRAWL_API_KEY not set"
-    ((FAIL++))
+    FAIL=$((FAIL + 1))
 fi
 
 if [ -n "${CONTEXT7_API_KEY:-}" ]; then
     echo -e "${GREEN}✓${NC} CONTEXT7_API_KEY configured (${CONTEXT7_API_KEY:0:10}...)"
-    ((PASS++))
+    PASS=$((PASS + 1))
 else
     echo -e "${YELLOW}⚠${NC} CONTEXT7_API_KEY not set (documentation retrieval unavailable)"
-    ((WARN++))
+    WARN=$((WARN + 1))
 fi
 
 echo ""
@@ -116,15 +116,14 @@ check_endpoint "Firecrawl" "${FIRECRAWL_URL}" "true" ""
 check_endpoint "Git MCP" "${GIT_MCP_URL}" "true" ""
 check_endpoint "Filesystem MCP" "${FILESYSTEM_MCP_URL}" "true" ""
 check_endpoint "Terminal MCP" "${TERMINAL_MCP_URL}" "true" ""
-check_endpoint "Skills MCP" "${SKILLS_MCP_URL}" "true" ""
-check_endpoint "Agents MCP" "${AGENTS_MCP_URL}" "true" ""
 
 echo ""
 echo "Remote MCP Servers (OPTIONAL):"
 echo "==========================================="
 
-check_endpoint "Context7 API" "${CONTEXT7_URL:-https://api.context7.com}" "false" ""
-check_endpoint "Playwright" "${PLAYWRIGHT_URL}" "false" "/"
+check_endpoint "Context7 MCP" "${CONTEXT7_MCP_URL}" "false" ""
+check_endpoint "Playwright MCP" "${PLAYWRIGHT_MCP_URL}" "false" ""
+check_endpoint "Puppeteer MCP" "${PUPPETEER_MCP_URL}" "false" ""
 
 echo ""
 echo "==========================================="

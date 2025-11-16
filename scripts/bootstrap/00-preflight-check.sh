@@ -15,12 +15,12 @@ fi
 
 echo "Running preflight checks..."
 
-# Check Claude Code CLI
-if ! command -v claude &> /dev/null; then
-    echo "❌ Claude Code CLI not installed"
-    exit 1
+# Check Claude Code CLI (optional - we're running IN Claude Code already)
+if command -v claude &> /dev/null; then
+    echo "✓ Claude Code CLI"
+else
+    echo "⚠️  Claude Code CLI not found (optional - running in Claude Code session)"
 fi
-echo "✓ Claude Code CLI"
 
 # Check tmux
 if ! command -v tmux &> /dev/null; then
