@@ -1,49 +1,91 @@
+# Remote-Only MCP Configuration
+# All MCP servers are accessed via HTTPS - none managed by Claude CLI
+
 servers:
-  # Remote HTTP MCP Servers
+  # Web Scraping and Content Extraction
   firecrawl:
-    type: mcp
-    transport: stdio
-    command: npx
-    args: ["-y", "firecrawl-mcp"]
+    type: remote
+    url: "${FIRECRAWL_URL}"
+    transport: https
     api_key: "${FIRECRAWL_API_KEY}"
     required: true
-    description: "Web scraping and content extraction via API"
+    description: "Web scraping and content extraction via remote API"
 
+  # Documentation Context Retrieval
   context7:
-    type: api
+    type: remote
+    url: "${CONTEXT7_URL:-https://api.context7.com}"
+    transport: https
     api_key: "${CONTEXT7_API_KEY}"
     required: true
-    description: "Documentation context retrieval via API"
+    description: "Documentation context retrieval via remote API"
 
+  # Memory and Context Storage (Serena)
   serena:
     type: remote
-    url: "${SERENA_URL:-http://localhost:3001}"
+    url: "${SERENA_URL}"
+    transport: https
     health_endpoint: "/health"
     required: true
-    description: "Memory and context storage"
+    description: "Memory and context storage - multi-instance coordination"
 
-  # MCP Stdio Servers (managed by Claude CLI)
+  # Git Operations (Remote MCP Server)
   git:
-    type: mcp
-    transport: stdio
+    type: remote
+    url: "${GIT_MCP_URL}"
+    transport: https
     required: true
-    description: "Git operations"
+    description: "Git operations via remote MCP server"
 
+  # Filesystem Operations (Remote MCP Server)
   filesystem:
-    type: mcp
-    transport: stdio
+    type: remote
+    url: "${FILESYSTEM_MCP_URL}"
+    transport: https
     required: true
-    description: "File system operations"
+    description: "File system operations via remote MCP server"
 
+  # Terminal Command Execution (Remote MCP Server)
+  terminal:
+    type: remote
+    url: "${TERMINAL_MCP_URL}"
+    transport: https
+    required: true
+    description: "Terminal command execution via remote MCP server"
+
+  # Skills System (Remote)
+  skills:
+    type: remote
+    url: "${SKILLS_MCP_URL}"
+    transport: https
+    required: true
+    description: "Remote skills system for specialized workflows"
+
+  # Agent System (Remote)
+  agents:
+    type: remote
+    url: "${AGENTS_MCP_URL}"
+    transport: https
+    required: true
+    description: "Remote agent dispatch and coordination"
+
+  # UI Testing and Verification (Optional)
   playwright:
     type: remote
-    url: "${PLAYWRIGHT_URL:-http://localhost:9222}"
+    url: "${PLAYWRIGHT_URL}"
+    transport: https
     health_endpoint: "/"
     required: false
-    description: "UI testing and verification"
+    description: "UI testing and verification (optional)"
 
-  terminal:
-    type: mcp
-    transport: stdio
-    required: true
-    description: "Terminal command execution"
+  # Hugging Face Hub Integration
+  huggingface:
+    type: remote
+    url: "http://localhost:3000"
+    transport: https
+    health_endpoint: "/health"
+    required: false
+    description: "Hugging Face Hub - model/dataset/space discovery"
+
+# Note: All URLs and API keys should be defined in .env file
+# This configuration is for remote-only operation - no local stdio servers

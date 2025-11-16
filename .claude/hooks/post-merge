@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# After merge/rebase, refresh knowledge surfaces (OpenAPI, graphs, semantic)
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+
+if command -v make >/dev/null 2>&1; then
+  make -s knowledge-refresh || true
+fi

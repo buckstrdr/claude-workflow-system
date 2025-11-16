@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# Pre-Commit Hook: Verify UI Changes with Playwright
+# Enforces /ui-verify for any frontend code changes
+#
+# STRICT MODE ENABLED BY DEFAULT
+# To bypass (NOT RECOMMENDED): STRICT_UI=0 git commit
+
+set -euo pipefail
+STRICT=${STRICT_UI:-1}  # Default to STRICT
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Get staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
+
+# Check if any frontend files changed
+FRONTEND_CHANGES=$(echo "$STAGED_FILES" | grep "^topstepx_frontend/src/" | grep -E '\.(tsx?|jsx?|css)$' || true)
+
+if [ -z "$FRONTEND_CHANGES" ]; then
+  # No frontend changes, skip UI verification
+  exit 0
+fi
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  UI Change Detection"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "Frontend files changed:"
+echo "$FRONTEND_CHANGES" | sed 's/^/  • /'
+echo ""
+
+# Check for recent UI verification report
+VERIFICATION_REQUIRED=true
+
+# Find most recent ui_verify report
+LATEST_REPORT=$(find .ian/ -name "ui_verify_*.md" -type f 2>/dev/null | sort -r | head -1 || echo "")
+
+if [ -n "$LATEST_REPORT" ]; then
+  # Check if report is recent (within last 10 minutes)
+  REPORT_TIME=$(stat -c %Y "$LATEST_REPORT" 2>/dev/null || stat -f %m "$LATEST_REPORT" 2>/dev/null || echo "0")
+  CURRENT_TIME=$(date +%s)
+  TIME_DIFF=$((CURRENT_TIME - REPORT_TIME))
+
+  if [ "$TIME_DIFF" -lt 600 ]; then
+    # Report is recent, check status
+    if grep -q "Status: PASSED" "$LATEST_REPORT" 2>/dev/null; then
+      echo "✓ UI verification found: $LATEST_REPORT"
+      echo "  Age: $((TIME_DIFF / 60)) minutes"
+      echo "  Status: PASSED"
+      VERIFICATION_REQUIRED=false
+    else
+      echo "❌ UI verification found but FAILED: $LATEST_REPORT"
+      echo "  Age: $((TIME_DIFF / 60)) minutes"
+      echo "  Status: FAILED"
+    fi
+  else
+    echo "⚠️  UI verification too old: $LATEST_REPORT"
+    echo "  Age: $((TIME_DIFF / 60)) minutes (>10 min)"
+  fi
+else
+  echo "⚠️  No UI verification report found in .ian/"
+fi
+
+if [ "$VERIFICATION_REQUIRED" = "true" ]; then
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  UI Verification Required"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+  echo "You've modified frontend files but haven't run UI verification."
+  echo ""
+  echo "REQUIRED: Run /ui-verify to verify your UI changes work correctly"
+  echo ""
+  echo "What /ui-verify does:"
+  echo "  1. Starts backend + frontend servers (if needed)"
+  echo "  2. Navigates to UI with Playwright"
+  echo "  3. Captures console logs (errors, warnings)"
+  echo "  4. Takes full-page screenshot at 1920x1080"
+  echo "  5. Verifies key UI elements are present"
+  echo "  6. Saves report to .ian/ui_verify_{timestamp}.md"
+  echo ""
+  echo "To proceed:"
+  echo "  1. Run: /ui-verify"
+  echo "  2. Fix any issues found"
+  echo "  3. Commit when verification PASSES"
+  echo ""
+
+  if [ "$STRICT" = "1" ]; then
+    echo "❌ BLOCKED: STRICT_UI=1 (default) requires UI verification"
+    echo ""
+    echo "To bypass (NOT RECOMMENDED): STRICT_UI=0 git commit"
+    echo ""
+    exit 1
+  else
+    echo "⚠️  WARNING: Proceeding without UI verification (STRICT_UI=0)"
+    echo ""
+  fi
+fi
+
+echo "✅ UI verification checks passed"
+echo ""
+exit 0

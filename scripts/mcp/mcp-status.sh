@@ -1,69 +1,149 @@
 #!/bin/bash
-# Check status of all MCP servers and API keys
+# Check status of all REMOTE MCP servers via HTTPS
+# ALL MCP servers are remote - none managed by Claude CLI
 
 set -euo pipefail
 
-echo "Checking MCP configuration..."
+# Load environment variables
+if [ -f .env ]; then
+    set -a
+    source .env
+    set +a
+fi
+
+echo "==========================================="
+echo "  Remote MCP Services Status Check"
+echo "==========================================="
+echo ""
+echo "Architecture: Remote-Only HTTPS"
+echo "All MCP servers accessed via HTTPS endpoints"
+echo "NO local stdio servers managed by Claude CLI"
 echo ""
 
-# Check API Keys
+# Color codes for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+PASS=0
+FAIL=0
+WARN=0
+
+# Function to check HTTPS endpoint
+check_endpoint() {
+    local name=$1
+    local url=$2
+    local required=$3
+    local health_path=${4:-""}
+
+    echo -n "Checking $name at $url... "
+
+    if [ -z "$url" ] || [ "$url" = "http://localhost:0" ]; then
+        if [ "$required" = "true" ]; then
+            echo -e "${RED}✗ URL NOT CONFIGURED${NC}"
+            ((FAIL++))
+        else
+            echo -e "${YELLOW}⚠ NOT CONFIGURED (optional)${NC}"
+            ((WARN++))
+        fi
+        return
+    fi
+
+    # Try health endpoint if specified
+    if [ -n "$health_path" ]; then
+        if curl -sf --max-time 2 "${url}${health_path}" >/dev/null 2>&1; then
+            echo -e "${GREEN}✓ ONLINE${NC}"
+            ((PASS++))
+            return
+        fi
+    fi
+
+    # Try base URL
+    if curl -sf --max-time 2 "$url" >/dev/null 2>&1; then
+        echo -e "${GREEN}✓ ONLINE${NC}"
+        ((PASS++))
+        return
+    fi
+
+    # Try port connectivity as fallback
+    local host=$(echo "$url" | sed 's|http[s]*://||' | cut -d: -f1)
+    local port=$(echo "$url" | sed 's|http[s]*://||' | cut -d: -f2 | cut -d/ -f1)
+
+    if [ -n "$port" ] && nc -z "$host" "$port" 2>/dev/null; then
+        echo -e "${YELLOW}⚠ PORT OPEN (no HTTP response)${NC}"
+        ((WARN++))
+        return
+    fi
+
+    # Service is offline
+    if [ "$required" = "true" ]; then
+        echo -e "${RED}✗ OFFLINE${NC}"
+        ((FAIL++))
+    else
+        echo -e "${YELLOW}⚠ OFFLINE (optional)${NC}"
+        ((WARN++))
+    fi
+}
+
 echo "API Keys:"
+echo "==========================================="
+
+# Check API Keys
 if [ -n "${FIRECRAWL_API_KEY:-}" ]; then
-    echo "✓ FIRECRAWL_API_KEY configured (${FIRECRAWL_API_KEY:0:10}...)"
+    echo -e "${GREEN}✓${NC} FIRECRAWL_API_KEY configured (${FIRECRAWL_API_KEY:0:10}...)"
+    ((PASS++))
 else
-    echo "❌ FIRECRAWL_API_KEY not set"
-    echo "   Add to .env: FIRECRAWL_API_KEY=fc-your-key"
-    exit 1
+    echo -e "${RED}✗${NC} FIRECRAWL_API_KEY not set"
+    ((FAIL++))
 fi
 
 if [ -n "${CONTEXT7_API_KEY:-}" ]; then
-    echo "✓ CONTEXT7_API_KEY configured (${CONTEXT7_API_KEY:0:10}...)"
+    echo -e "${GREEN}✓${NC} CONTEXT7_API_KEY configured (${CONTEXT7_API_KEY:0:10}...)"
+    ((PASS++))
 else
-    echo "⚠️  CONTEXT7_API_KEY not set (documentation retrieval unavailable)"
+    echo -e "${YELLOW}⚠${NC} CONTEXT7_API_KEY not set (documentation retrieval unavailable)"
+    ((WARN++))
 fi
 
 echo ""
-echo "MCP Stdio Services (managed by Claude CLI):"
-echo "✓ Firecrawl MCP (npx -y firecrawl-mcp)"
-echo "✓ Git MCP"
-echo "✓ Filesystem MCP"
-echo "✓ Terminal MCP"
+echo "Remote MCP Servers (REQUIRED):"
+echo "==========================================="
+
+# Check required remote services
+check_endpoint "Serena" "${SERENA_URL}" "true" ""
+check_endpoint "Firecrawl" "${FIRECRAWL_URL}" "true" ""
+check_endpoint "Git MCP" "${GIT_MCP_URL}" "true" ""
+check_endpoint "Filesystem MCP" "${FILESYSTEM_MCP_URL}" "true" ""
+check_endpoint "Terminal MCP" "${TERMINAL_MCP_URL}" "true" ""
+check_endpoint "Skills MCP" "${SKILLS_MCP_URL}" "true" ""
+check_endpoint "Agents MCP" "${AGENTS_MCP_URL}" "true" ""
 
 echo ""
-echo "Remote MCP Servers:"
+echo "Remote MCP Servers (OPTIONAL):"
+echo "==========================================="
 
-# Load server URLs from environment or defaults
-SERENA_URL="${SERENA_URL:-http://localhost:3001}"
-PLAYWRIGHT_URL="${PLAYWRIGHT_URL:-http://localhost:9222}"
-
-# Check Serena (CRITICAL)
-echo -n "Serena at $SERENA_URL... "
-# Check if port is reachable (Serena may not have /health endpoint)
-if curl -sf --max-time 2 "$SERENA_URL" >/dev/null 2>&1 || nc -z ${SERENA_URL#http://} 2>/dev/null; then
-    echo "✓ (running)"
-else
-    # Try extracting host:port for nc check
-    SERENA_HOST=$(echo $SERENA_URL | sed 's|http://||' | cut -d: -f1)
-    SERENA_PORT=$(echo $SERENA_URL | sed 's|http://||' | cut -d: -f2)
-    if nc -z $SERENA_HOST $SERENA_PORT 2>/dev/null; then
-        echo "✓ (port open)"
-    else
-        echo "❌ OFFLINE"
-        echo ""
-        echo "Serena is required for multi-instance coordination."
-        echo "Start with: serena start-mcp-server --transport sse --port 3001"
-        echo "Or set SERENA_URL to point to running instance."
-        exit 1
-    fi
-fi
-
-# Check Playwright (OPTIONAL)
-echo -n "Playwright at $PLAYWRIGHT_URL... "
-if curl -sf "$PLAYWRIGHT_URL/" >/dev/null 2>&1; then
-    echo "✓"
-else
-    echo "⚠️  OFFLINE (UI verification unavailable)"
-fi
+check_endpoint "Context7 API" "${CONTEXT7_URL:-https://api.context7.com}" "false" ""
+check_endpoint "Playwright" "${PLAYWRIGHT_URL}" "false" "/"
 
 echo ""
-echo "✅ All critical MCP services ready"
+echo "==========================================="
+echo "  Summary"
+echo "==========================================="
+echo -e "${GREEN}Passed:${NC} $PASS"
+echo -e "${YELLOW}Warnings:${NC} $WARN"
+echo -e "${RED}Failed:${NC} $FAIL"
+echo ""
+
+if [ $FAIL -eq 0 ]; then
+    echo -e "${GREEN}✅ All critical MCP services ready${NC}"
+    exit 0
+else
+    echo -e "${RED}❌ Some required services are offline or not configured${NC}"
+    echo ""
+    echo "Next steps:"
+    echo "1. Review .env file for missing URLs"
+    echo "2. Start required MCP servers (see .env for ports)"
+    echo "3. Re-run this script to verify"
+    exit 1
+fi

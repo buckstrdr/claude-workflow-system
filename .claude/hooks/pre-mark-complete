@@ -1,0 +1,197 @@
+#!/usr/bin/env bash
+# Local Hook: Pre-Mark-Complete
+# Validates work is truly complete before allowing todos to be marked as done
+#
+# This script can be invoked:
+# 1. Manually before marking todos complete: .git/hooks/pre-mark-complete
+# 2. By TodoWrite tool wrapper (if integrated)
+# 3. As part of issue closing workflow
+
+set -euo pipefail
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+FEATURE="${1:-$(git branch --show-current | sed 's/^[^/]*\///')}"
+EXIT_CODE=0
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  Pre-Mark-Complete Validation: $FEATURE"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Check if quality gates exist for this feature
+GATE_DIR=".git/quality-gates/$FEATURE"
+
+if [ -d "$GATE_DIR" ]; then
+  CURRENT_GATE=$(cat "$GATE_DIR/current_gate.txt" 2>/dev/null || echo "0")
+
+  if [ "$CURRENT_GATE" -lt 6 ]; then
+    echo "❌ BLOCKED: Quality gate not at Gate 6 (E2E Verified)"
+    echo ""
+    echo "Current gate: $CURRENT_GATE/7"
+    echo ""
+    echo "Cannot mark work complete until Gate 6 (E2E Verified) is passed."
+    echo ""
+    echo "Required gates:"
+    echo "  Gate 1: Spec Approved"
+    echo "  Gate 2: Tests First (TDD)"
+    echo "  Gate 3: Implementation Complete"
+    echo "  Gate 4: Refactored"
+    echo "  Gate 5: Integrated"
+    echo "  → Gate 6: E2E Verified ← YOU ARE HERE"
+    echo "  Gate 7: Code Reviewed"
+    echo ""
+    echo "To proceed:"
+    echo "  1. Run: /e2e-verify"
+    echo "  2. Fix any failures"
+    echo "  3. Advance to Gate 6: /gates pass"
+    echo "  4. Then mark complete"
+    echo ""
+    exit 1
+  fi
+else
+  echo "⚠️  WARNING: No quality gate tracking found for feature: $FEATURE"
+  echo ""
+  echo "Quality gates help ensure work is truly complete."
+  echo ""
+  echo "To use quality gates:"
+  echo "  /gates start $FEATURE"
+  echo ""
+fi
+
+# Check 1: /verify-complete results
+echo "→ Checking /verify-complete requirements..."
+echo ""
+
+# Code Quality
+TODOS=$(grep -r "TODO\|FIXME\|XXX\|HACK" topstepx_backend/ topstepx_frontend/src/ --exclude-dir="tests" --exclude-dir="__tests__" --exclude-dir="node_modules" 2>/dev/null || true)
+
+if [ -n "$TODOS" ]; then
+  echo "❌ Code Quality: TODO/FIXME found in production code"
+  echo "$TODOS" | head -5
+  echo ""
+  EXIT_CODE=1
+else
+  echo "✓ Code Quality: No TODOs in production code"
+fi
+
+# Debug statements
+DEBUG=$(grep -rE "(console\.log|print\(|debugger|pdb\.set_trace)" topstepx_backend/ topstepx_frontend/src/ --exclude-dir="tests" --exclude-dir="__tests__" --exclude-dir="node_modules" 2>/dev/null || true)
+
+if [ -n "$DEBUG" ]; then
+  echo "❌ Code Quality: Debug statements found"
+  echo "$DEBUG" | head -5
+  echo ""
+  EXIT_CODE=1
+else
+  echo "✓ Code Quality: No debug statements"
+fi
+
+# Tests
+echo ""
+echo "→ Checking tests..."
+echo ""
+
+# Backend tests
+if command -v python >/dev/null 2>&1; then
+  if python -m pytest topstepx_backend/tests/ -q >/dev/null 2>&1; then
+    echo "✓ Tests: Backend tests passing"
+  else
+    echo "❌ Tests: Backend tests FAILING"
+    EXIT_CODE=1
+  fi
+fi
+
+# Frontend tests (if applicable)
+if [ -f "topstepx_frontend/package.json" ] && grep -q '"test"' topstepx_frontend/package.json; then
+  cd topstepx_frontend
+  if npm test -- --run >/dev/null 2>&1; then
+    echo "✓ Tests: Frontend tests passing"
+  else
+    echo "❌ Tests: Frontend tests FAILING"
+    EXIT_CODE=1
+  fi
+  cd "$REPO_ROOT"
+fi
+
+# Integration
+echo ""
+echo "→ Checking integration..."
+echo ""
+
+# Backend can start
+if timeout 10 python -m topstepx_backend --help >/dev/null 2>&1; then
+  echo "✓ Integration: Backend imports successfully"
+else
+  echo "❌ Integration: Backend CANNOT import"
+  EXIT_CODE=1
+fi
+
+# Frontend builds
+if [ -d "topstepx_frontend" ]; then
+  cd topstepx_frontend
+  if npm run build >/dev/null 2>&1; then
+    echo "✓ Integration: Frontend builds successfully"
+  else
+    echo "❌ Integration: Frontend build FAILS"
+    EXIT_CODE=1
+  fi
+  cd "$REPO_ROOT"
+fi
+
+# Check 2: E2E Verification
+echo ""
+echo "→ Checking E2E verification..."
+echo ""
+
+# Look for recent E2E verification results
+if [ -d "$GATE_DIR" ] && [ -f "$GATE_DIR/gate_6_e2e.status" ]; then
+  E2E_STATUS=$(cat "$GATE_DIR/gate_6_e2e.status")
+  if [ "$E2E_STATUS" = "PASSED" ]; then
+    echo "✓ E2E Verified: Gate 6 passed"
+  else
+    echo "❌ E2E Verified: Gate 6 NOT passed"
+    echo ""
+    echo "Run: /e2e-verify"
+    echo "Then: /gates pass"
+    echo ""
+    EXIT_CODE=1
+  fi
+else
+  echo "⚠️  E2E Verified: No E2E verification found"
+  echo ""
+  echo "Run: /e2e-verify to validate end-to-end functionality"
+  echo ""
+
+  # Warn but don't block if no gate tracking
+  if [ ! -d "$GATE_DIR" ]; then
+    echo "(Continuing without E2E verification - no gate tracking)"
+  else
+    EXIT_CODE=1
+  fi
+fi
+
+# Summary
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "  Validation Summary"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+if [ "$EXIT_CODE" -eq 0 ]; then
+  echo "✅ COMPLETE - All checks passed"
+  echo ""
+  echo "Work is verified complete and ready to:"
+  echo "  • Mark todo as completed"
+  echo "  • Close GitHub issue"
+  echo "  • Mark PR as ready for review"
+  echo ""
+else
+  echo "❌ INCOMPLETE - Issues found"
+  echo ""
+  echo "Address the issues above before marking complete."
+  echo "Re-run: .git/hooks/pre-mark-complete"
+  echo ""
+  exit 1
+fi

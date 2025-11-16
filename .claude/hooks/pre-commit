@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# Keep pre-commit fast and relevant: refresh semantic index incrementally and guard repo hygiene.
+set -euo pipefail
+STRICT=${STRICT_HOOKS:-0}
+if [ -f ".git/hooks/strict" ]; then STRICT=1; fi
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+if command -v make >/dev/null 2>&1; then
+  echo "[pre-commit] semantic (incremental) ..." >&2
+  make -s semantic >/dev/null 2>&1 || true
+  echo "[pre-commit] graphs-fast (minimal) ..." >&2
+  make -s graphs-fast >/dev/null 2>&1 || true
+fi
+
+# Guard: prevent stray dev/.serena mirrors (legacy). Auto-remove if found.
+for STRAY in dev/.serena dev/devtools/.serena; do
+  if [ -d "$STRAY" ]; then
+    echo "[pre-commit] Removing stray $STRAY (canonical surface is .serena/*)" >&2
+    rm -rf "$STRAY" || true
+  fi
+done
+
+# Auto-unify any accidental focus packs under memories → knowledge
+# Remove legacy focus packs if they appear (moved to knowledge/focus)
+if [ -d ".serena/memories/focus" ]; then
+  found=$(ls -1 .serena/memories/focus/*.md 2>/dev/null || true)
+  if [ -n "$found" ]; then
+    echo "[pre-commit] Moving focus packs → .serena/knowledge/focus" >&2
+    mkdir -p .serena/knowledge/focus
+    mv .serena/memories/focus/*.md .serena/knowledge/focus/ 2>/dev/null || true
+    rmdir .serena/memories/focus 2>/dev/null || true
+  fi
+fi
+
+# Guard: prevent accidental docs in repo root (warn by default; enforce with STRICT_HOOKS=1)
+ROOT_ALLOWED=(
+  "AGENTS.md"
+  "IMPROVEMENTS.md"
+  "ORCHESTRATOR_SIMPLICITY_PLAN.md"
+  "REPO_ANALYSIS.md"
+  ".env"
+  "Makefile"
+  "start_stack.sh"
+)
+
+added=$(git diff --cached --name-only || true)
+rc=0
+for f in $added; do
+  case "$f" in
+    */*) continue;; # not in root
+  esac
+  case "$f" in
+    *.md|*.json|*.yml|*.yaml)
+      allowed=0
+      for a in "${ROOT_ALLOWED[@]}"; do [ "$f" = "$a" ] && allowed=1 && break; done
+      if [ $allowed -eq 0 ]; then
+        echo "[pre-commit] WARN: root doc '$f' is not allowed; put docs under .serena/knowledge/" >&2
+        rc=1
+      fi
+    ;;
+  esac
+done
+
+if [ "$STRICT" = "1" ] 2>/dev/null; then
+  exit $rc
+fi

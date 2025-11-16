@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/home/buckstrdr/claude-workflow-system/logs/.cffcb9db0b4ec787e12ecf6b9ce541eb0cda83cc-audit.json",
+    "files": [
+        {
+            "date": 1763294724262,
+            "name": "/home/buckstrdr/claude-workflow-system/logs/mcp-puppeteer-2025-11-16.log",
+            "hash": "fd119c0d0e7f52861fd8670d53e5b4c262d524822771c94ea60f70ab129a4f0f"
+        }
+    ],
+    "hashType": "sha256"
+}
