@@ -14,8 +14,9 @@ GATE_DIR=".git/quality-gates/$FEATURE_NAME"
 
 # Check if already exists
 if [ -d "$GATE_DIR" ]; then
-    echo "❌ Quality gates already initialized for: $FEATURE_NAME"
-    exit 1
+    echo "⚠️  Quality gates already initialized for: $FEATURE_NAME"
+    echo "⚠️  Using existing quality gates"
+    exit 0
 fi
 
 # Create directory
