@@ -1,0 +1,32 @@
+servers:
+  serena:
+    type: remote
+    url: "${SERENA_URL:-http://localhost:3001}"
+    health_endpoint: "/health"
+    required: true
+    description: "Memory and context storage"
+
+  filesystem:
+    type: mcp
+    transport: stdio
+    required: true
+    description: "File system operations"
+
+  git:
+    type: mcp
+    transport: stdio
+    required: true
+    description: "Git operations"
+
+  playwright:
+    type: remote
+    url: "${PLAYWRIGHT_URL:-http://localhost:9222}"
+    health_endpoint: "/"
+    required: false
+    description: "UI testing and verification"
+
+  terminal:
+    type: mcp
+    transport: stdio
+    required: true
+    description: "Terminal command execution"

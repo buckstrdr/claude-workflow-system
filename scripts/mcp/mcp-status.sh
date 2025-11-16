@@ -1,21 +1,37 @@
 #!/bin/bash
-# Check status of all MCP servers
+# Check status of all MCP servers (supports remote servers)
+
+set -euo pipefail
 
 echo "Checking MCP servers..."
 
-# Serena (CRITICAL)
-if curl -s http://localhost:3001/health >/dev/null 2>&1; then
-    echo "✓ Serena (port 3001)"
+# Load server URLs from environment or defaults
+SERENA_URL="${SERENA_URL:-http://localhost:3001}"
+PLAYWRIGHT_URL="${PLAYWRIGHT_URL:-http://localhost:9222}"
+
+# Check Serena (CRITICAL)
+echo -n "Checking Serena at $SERENA_URL... "
+if curl -sf "$SERENA_URL/health" >/dev/null 2>&1; then
+    echo "✓"
 else
-    echo "❌ Serena OFFLINE (CRITICAL)"
+    echo "❌ OFFLINE (CRITICAL)"
+    echo ""
+    echo "Serena is required for multi-instance coordination."
+    echo "Set SERENA_URL environment variable if using remote server."
+    echo "Example: export SERENA_URL=http://your-server:3001"
     exit 1
 fi
 
-# Playwright (for UI verification)
-if curl -s http://localhost:9222 >/dev/null 2>&1; then
-    echo "✓ Playwright (port 9222)"
+# Check Playwright (OPTIONAL)
+echo -n "Checking Playwright at $PLAYWRIGHT_URL... "
+if curl -sf "$PLAYWRIGHT_URL/" >/dev/null 2>&1; then
+    echo "✓"
 else
-    echo "⚠️  Playwright offline (UI verification unavailable)"
+    echo "⚠️  OFFLINE (UI verification unavailable)"
 fi
 
-echo "✅ Critical MCP servers running"
+# MCP stdio servers (filesystem, git, terminal) are managed by Claude Code CLI
+echo "✓ MCP stdio servers managed by Claude Code CLI"
+
+echo ""
+echo "✅ All critical MCP servers ready"
