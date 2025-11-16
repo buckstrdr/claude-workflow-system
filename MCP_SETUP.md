@@ -4,6 +4,22 @@ This system supports both local and remote MCP servers.
 
 ## Remote MCP Servers (Recommended for Multi-Instance)
 
+### Firecrawl (Web Scraping) - REQUIRED
+
+Firecrawl provides web scraping and content extraction capabilities.
+
+**Environment Variable:**
+```bash
+export FIRECRAWL_URL=http://your-server:3002
+```
+
+**Health Check:**
+```bash
+curl http://your-server:3002/health
+```
+
+Expected response: `{"status":"ok"}`
+
 ### Serena (Memory Server) - REQUIRED
 
 Serena stores conversation context and coordinates between Claude instances.
@@ -62,6 +78,7 @@ Create `.env` file for persistent configuration:
 
 ```bash
 # .env
+FIRECRAWL_URL=http://your-firecrawl-server:3002
 SERENA_URL=http://your-serena-server:3001
 PLAYWRIGHT_URL=http://your-playwright-server:9222
 ```
