@@ -1,0 +1,121 @@
+# Unified MCP Configuration for Claude Code Instances
+# Used by all 12 role instances (Orchestrator, Librarian, Planner-A, Planner-B, Architect-A/B/C, Dev-A/B, QA-A/B, Docs)
+
+mcpServers:
+  # Core Memory & Context
+  serena:
+    command: npx
+    args:
+      - -y
+      - "@serenaai/mcp-server-serena"
+    env:
+      SERENA_API_KEY: ${SERENA_API_KEY}
+
+  # Git Operations
+  git:
+    command: npx
+    args:
+      - -y
+      - "@modelcontextprotocol/server-git"
+
+  # Filesystem Operations
+  filesystem:
+    command: npx
+    args:
+      - -y
+      - "@modelcontextprotocol/server-filesystem"
+    args:
+      - ${WORKTREE_PATH}
+
+  # Terminal/Shell Operations
+  terminal:
+    command: npx
+    args:
+      - -y
+      - "@modelcontextprotocol/server-terminal"
+
+  # Web Scraping & Documentation
+  firecrawl:
+    command: npx
+    args:
+      - -y
+      - "@firecrawl/mcp-server"
+    env:
+      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY}
+
+  # Library Documentation
+  context7:
+    command: npx
+    args:
+      - -y
+      - "@context7/mcp-server"
+    env:
+      CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}
+
+  # Browser Automation (Playwright)
+  playwright:
+    command: npx
+    args:
+      - -y
+      - "@modelcontextprotocol/server-playwright"
+
+  # Browser Automation (Puppeteer)
+  puppeteer:
+    command: npx
+    args:
+      - -y
+      - "@modelcontextprotocol/server-puppeteer"
+
+# Skills available to all instances
+skills:
+  # Superpowers suite
+  - name: superpowers:brainstorming
+    description: "Interactive design refinement using Socratic method before coding"
+
+  - name: superpowers:test-driven-development
+    description: "TDD workflow (write tests first, watch fail, implement)"
+
+  - name: superpowers:systematic-debugging
+    description: "Four-phase debugging framework (root cause, pattern, hypothesis, implementation)"
+
+  - name: superpowers:verification-before-completion
+    description: "Verify work before claiming complete - evidence before assertions"
+
+  - name: superpowers:requesting-code-review
+    description: "Dispatch code-reviewer subagent to review implementation"
+
+  - name: superpowers:receiving-code-review
+    description: "Handle code review feedback with technical rigor and verification"
+
+# Hooks configuration
+hooks:
+  sessionStart:
+    - name: clear
+      command: |
+        #!/bin/bash
+        # Session start - backup CLAUDE.md if exists
+        if [ -f CLAUDE.md ]; then
+          cp CLAUDE.md ".claude/backups/CLAUDE-$(date +%Y%m%d-%H%M%S).md"
+        fi
+        echo "✓ Session started - CLAUDE.md backed up"
+
+  userPromptSubmit:
+    - name: callback
+      command: |
+        #!/bin/bash
+        # User prompt submitted - log to audit trail
+        echo "$(date -Iseconds): User prompt submitted" >> .git/audit/prompt-log.txt
+
+# Agents configuration
+agents:
+  - name: senior-fullstack-engineer
+    description: "Full-stack development with TDD and comprehensive testing"
+
+  - name: qa-gatekeeper
+    description: "Quality assurance review before deployment"
+
+  - name: senior-architect-planner
+    description: "Technical architecture and PRD creation"
+
+  - name: docs-version-control-architect
+    description: "Documentation and version control best practices"
