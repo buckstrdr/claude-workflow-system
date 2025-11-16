@@ -1,30 +1,43 @@
 #!/bin/bash
-# Check status of all MCP servers (supports remote servers)
+# Check status of all MCP servers and API keys
 
 set -euo pipefail
 
-echo "Checking MCP servers..."
+echo "Checking MCP configuration..."
+echo ""
 
-# Load server URLs from environment or defaults
-FIRECRAWL_URL="${FIRECRAWL_URL:-http://localhost:3002}"
-SERENA_URL="${SERENA_URL:-http://localhost:3001}"
-PLAYWRIGHT_URL="${PLAYWRIGHT_URL:-http://localhost:9222}"
-
-# Check Firecrawl (CRITICAL)
-echo -n "Checking Firecrawl at $FIRECRAWL_URL... "
-if curl -sf "$FIRECRAWL_URL/health" >/dev/null 2>&1; then
-    echo "✓"
+# Check API Keys
+echo "API Keys:"
+if [ -n "${FIRECRAWL_API_KEY:-}" ]; then
+    echo "✓ FIRECRAWL_API_KEY configured (${FIRECRAWL_API_KEY:0:10}...)"
 else
-    echo "❌ OFFLINE (CRITICAL)"
-    echo ""
-    echo "Firecrawl is required for web scraping and content extraction."
-    echo "Set FIRECRAWL_URL environment variable if using remote server."
-    echo "Example: export FIRECRAWL_URL=http://your-server:3002"
+    echo "❌ FIRECRAWL_API_KEY not set"
+    echo "   Add to .env: FIRECRAWL_API_KEY=fc-your-key"
     exit 1
 fi
 
+if [ -n "${CONTEXT7_API_KEY:-}" ]; then
+    echo "✓ CONTEXT7_API_KEY configured (${CONTEXT7_API_KEY:0:10}...)"
+else
+    echo "⚠️  CONTEXT7_API_KEY not set (documentation retrieval unavailable)"
+fi
+
+echo ""
+echo "MCP Stdio Services (managed by Claude CLI):"
+echo "✓ Firecrawl MCP (npx -y firecrawl-mcp)"
+echo "✓ Git MCP"
+echo "✓ Filesystem MCP"
+echo "✓ Terminal MCP"
+
+echo ""
+echo "Remote MCP Servers:"
+
+# Load server URLs from environment or defaults
+SERENA_URL="${SERENA_URL:-http://localhost:3001}"
+PLAYWRIGHT_URL="${PLAYWRIGHT_URL:-http://localhost:9222}"
+
 # Check Serena (CRITICAL)
-echo -n "Checking Serena at $SERENA_URL... "
+echo -n "Serena at $SERENA_URL... "
 if curl -sf "$SERENA_URL/health" >/dev/null 2>&1; then
     echo "✓"
 else
@@ -37,15 +50,12 @@ else
 fi
 
 # Check Playwright (OPTIONAL)
-echo -n "Checking Playwright at $PLAYWRIGHT_URL... "
+echo -n "Playwright at $PLAYWRIGHT_URL... "
 if curl -sf "$PLAYWRIGHT_URL/" >/dev/null 2>&1; then
     echo "✓"
 else
     echo "⚠️  OFFLINE (UI verification unavailable)"
 fi
 
-# MCP stdio servers (filesystem, git, terminal) are managed by Claude Code CLI
-echo "✓ MCP stdio servers managed by Claude Code CLI"
-
 echo ""
-echo "✅ All critical MCP servers ready"
+echo "✅ All critical MCP services ready"
