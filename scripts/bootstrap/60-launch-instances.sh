@@ -22,16 +22,17 @@ launch_instance() {
     local role="$2"
     local role_name="$3"
 
-    # Build system prompt
-    local prompt=$(build_prompt "$role")
+    # Build system prompt and save to temp file
+    local prompt_file="/tmp/prompt_${role}.txt"
+    build_prompt "$role" > "$prompt_file"
 
     # Create toolset.yaml with WORKTREE_PATH substitution
     local toolset_config="$WORKTREE_PATH/.toolset.yaml"
     sed "s|\${WORKTREE_PATH}|$WORKTREE_PATH|g" "$PROJECT_ROOT/toolset.yaml" > "$toolset_config"
 
-    # Launch Claude Code with role-specific prompt and MCP config
+    # Launch Claude Code with role-specific prompt from file
     tmux send-keys -t "$SESSION_NAME:$pane" \
-      "cd $WORKTREE_PATH && claude code --mcp-config .toolset.yaml --system '$prompt'" C-m
+      "cd $WORKTREE_PATH && $CLAUDE_CLI --mcp-config .toolset.yaml --system-prompt \"\$(cat $prompt_file)\" --dangerously-skip-permissions" C-m
 }
 
 # Alternative: Launch with simple echo if Claude Code not available
@@ -44,12 +45,23 @@ launch_placeholder() {
 }
 
 # Check if Claude Code CLI is available
+CLAUDE_CLI=""
 if command -v claude &> /dev/null; then
-    echo "✓ Claude Code CLI found, launching instances..."
+    CLAUDE_CLI="claude"
+elif [ -f "$HOME/.nvm/versions/node/v22.20.0/bin/claude" ]; then
+    CLAUDE_CLI="$HOME/.nvm/versions/node/v22.20.0/bin/claude"
+elif [ -f "$HOME/.nvm/versions/node/v20.*/bin/claude" ]; then
+    CLAUDE_CLI=$(find "$HOME/.nvm/versions/node/" -name "claude" -type l 2>/dev/null | head -1)
+fi
+
+if [ -n "$CLAUDE_CLI" ]; then
+    echo "✓ Claude Code CLI found at: $CLAUDE_CLI"
+    CLAUDE_VERSION=$($CLAUDE_CLI --version 2>&1 || echo "unknown")
+    echo "  Version: $CLAUDE_VERSION"
     LAUNCH_MODE="full"
 else
     echo "⚠ Claude Code CLI not found, using placeholder mode"
-    echo "  Install with: npm install -g @anthropic/claude-code"
+    echo "  Install with: npm install -g @anthropic-ai/claude-code"
     LAUNCH_MODE="placeholder"
 fi
 
