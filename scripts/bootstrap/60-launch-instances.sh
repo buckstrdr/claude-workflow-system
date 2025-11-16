@@ -26,12 +26,12 @@ launch_instance() {
     local prompt_file="/tmp/prompt_${role}.txt"
     build_prompt "$role" > "$prompt_file"
 
-    # Use the project's mcp-config.yaml (already configured for remote MCP proxy)
-    # No need to create a new config - the existing one has all 8 servers on localhost:3001-3009
+    # Use the project's mcp-config.json (already configured for remote MCP proxy)
+    # JSON format required by Claude Code CLI
 
     # Launch Claude Code with role-specific prompt from file
     tmux send-keys -t "$SESSION_NAME:$pane" \
-      "cd $WORKTREE_PATH && $CLAUDE_CLI --mcp-config $PROJECT_ROOT/mcp-config.yaml --system-prompt \"\$(cat $prompt_file)\" --dangerously-skip-permissions" C-m
+      "cd $WORKTREE_PATH && $CLAUDE_CLI --mcp-config $PROJECT_ROOT/mcp-config.json --system-prompt \"\$(cat $prompt_file)\" --dangerously-skip-permissions" C-m
 }
 
 # Alternative: Launch with simple echo if Claude Code not available
