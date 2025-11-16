@@ -5,6 +5,14 @@ set -euo pipefail
 
 FEATURE_NAME="$1"
 
+# Load environment variables from .env if exists
+if [ -f .env ]; then
+    echo "Loading environment from .env..."
+    set -a
+    source .env
+    set +a
+fi
+
 echo "Running preflight checks..."
 
 # Check Claude Code CLI
@@ -48,5 +56,18 @@ if tmux has-session -t "claude-feature-$FEATURE_NAME" 2>/dev/null; then
     exit 1
 fi
 echo "✓ No existing session"
+
+# Check API keys
+if [ -z "${FIRECRAWL_API_KEY:-}" ]; then
+    echo "⚠️  FIRECRAWL_API_KEY not set (add to .env file)"
+else
+    echo "✓ FIRECRAWL_API_KEY configured"
+fi
+
+if [ -z "${CONTEXT7_API_KEY:-}" ]; then
+    echo "⚠️  CONTEXT7_API_KEY not set (add to .env file)"
+else
+    echo "✓ CONTEXT7_API_KEY configured"
+fi
 
 echo "✅ All preflight checks passed"

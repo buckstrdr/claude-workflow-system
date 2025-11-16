@@ -1,11 +1,19 @@
 servers:
   # Remote HTTP MCP Servers
   firecrawl:
-    type: remote
-    url: "${FIRECRAWL_URL:-http://localhost:3002}"
-    health_endpoint: "/health"
+    type: mcp
+    transport: stdio
+    command: npx
+    args: ["-y", "firecrawl-mcp"]
+    api_key: "${FIRECRAWL_API_KEY}"
     required: true
-    description: "Web scraping and content extraction"
+    description: "Web scraping and content extraction via API"
+
+  context7:
+    type: api
+    api_key: "${CONTEXT7_API_KEY}"
+    required: true
+    description: "Documentation context retrieval via API"
 
   serena:
     type: remote
