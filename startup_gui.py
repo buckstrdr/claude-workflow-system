@@ -473,8 +473,10 @@ class MCPServerGUI:
             dialog.destroy()
 
             try:
-                # Check if session already exists and auto-cleanup
                 session_name = f"claude-feature-{feature_name}"
+
+                # IMPORTANT: Clean up BEFORE running bootstrap (not after)
+                # Bootstrap's preflight check will fail if session exists
                 check_session = subprocess.run(
                     ["tmux", "has-session", "-t", session_name],
                     capture_output=True
@@ -487,8 +489,11 @@ class MCPServerGUI:
                                  capture_output=True, cwd=self.install_dir)
                     subprocess.run(["git", "branch", "-D", f"feature/{feature_name}"],
                                  capture_output=True, cwd=self.install_dir)
+                    # Also clean up quality gates
+                    subprocess.run(["rm", "-rf", f".git/quality-gates/{feature_name}"],
+                                 capture_output=True, cwd=self.install_dir)
 
-                # Run bootstrap script first (creates tmux session)
+                # Now run bootstrap script (creates tmux session)
                 # Source .env and run bootstrap with proper shell environment
                 bootstrap_cmd = f"cd {self.install_dir} && source .env 2>/dev/null; ./bootstrap.sh {feature_name}"
                 bootstrap_result = subprocess.run(
