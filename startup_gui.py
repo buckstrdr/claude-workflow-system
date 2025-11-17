@@ -582,10 +582,10 @@ class MCPServerGUI:
                 # Monitor Layout: Monitor 3 (left) - Monitor 2 (middle) - Monitor 1 (right)
                 # Pixel positions: 0-1919 (M3), 1920-3839 (M2), 3840-5759 (M1)
 
-                # Terminal 1: Monitor 3 (left) - Planning
+                # Terminal 1: Monitor 3 (left) - Planning - FULLSCREEN
                 subprocess.Popen(
-                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-T", f"{feature_name} - Planning", "-geometry", "120x40+0+0",
+                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false", "-maximized",
+                     "-T", f"{feature_name} - Planning", "-geometry", "240x67+0+0",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w1-planning'; exec bash"],
@@ -593,10 +593,10 @@ class MCPServerGUI:
                 )
                 time.sleep(0.3)
 
-                # Terminal 2: Monitor 2 (middle left) - Architecture
+                # Terminal 2: Monitor 2 (middle left half) - Architecture
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-T", f"{feature_name} - Architecture", "-geometry", "80x40+1920+0",
+                     "-T", f"{feature_name} - Architecture", "-geometry", "120x67+1920+0",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Architecture\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w2-arch-dev1'; exec bash"],
@@ -604,10 +604,10 @@ class MCPServerGUI:
                 )
                 time.sleep(0.3)
 
-                # Terminal 3: Monitor 2 (middle right) - Dev+QA+Docs
+                # Terminal 3: Monitor 2 (middle right half) - Dev+QA+Docs
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-T", f"{feature_name} - Dev+QA+Docs", "-geometry", "80x40+2880+0",
+                     "-T", f"{feature_name} - Dev+QA+Docs", "-geometry", "120x67+2880+0",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
@@ -615,10 +615,10 @@ class MCPServerGUI:
                 )
                 time.sleep(0.3)
 
-                # Terminal 4: Monitor 1 (right) - Orchestrator
+                # Terminal 4: Monitor 1 (right) - Orchestrator - FULLSCREEN
                 subprocess.Popen(
-                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-T", f"{feature_name} - Orchestrator", "-geometry", "120x40+3840+0",
+                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false", "-maximized",
+                     "-T", f"{feature_name} - Orchestrator", "-geometry", "240x67+3840+0",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
