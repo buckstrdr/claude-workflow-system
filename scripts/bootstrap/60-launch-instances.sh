@@ -35,30 +35,6 @@ launch_instance() {
     # MCP servers accessible via environment but not in config (clean context)
     tmux send-keys -t "$session.$pane" \
       "cd $WORKTREE_PATH && source $PROJECT_ROOT/.env && $CLAUDE_CLI --mcp-config $PROJECT_ROOT/mcp-config.json --system-prompt \"\$(cat $prompt_file)\" --dangerously-skip-permissions" C-m
-
-    # Start inbox watcher in background (unless orchestrator)
-    if [ "$role" != "orchestrator" ]; then
-        # Map role name to message board directory
-        local msg_role="$role"
-        if [ "$role" = "planner" ] && [ "$role_name" = "Planner-A" ]; then
-            msg_role="planner"
-        elif [ "$role" = "planner" ] && [ "$role_name" = "Planner-B" ]; then
-            msg_role="planner"
-        elif [ "$role" = "architect" ]; then
-            msg_role="architect"
-        elif [ "$role" = "dev" ] && [ "$role_name" = "Dev-A" ]; then
-            msg_role="dev-a"
-        elif [ "$role" = "dev" ] && [ "$role_name" = "Dev-B" ]; then
-            msg_role="dev-b"
-        elif [ "$role" = "qa" ] && [ "$role_name" = "QA-A" ]; then
-            msg_role="qa-a"
-        elif [ "$role" = "qa" ] && [ "$role_name" = "QA-B" ]; then
-            msg_role="qa-b"
-        fi
-
-        # Launch inbox watcher in background
-        (cd "$WORKTREE_PATH" && "$PROJECT_ROOT/scripts/roles/inbox_watcher.sh" "$msg_role" "$WORKTREE_PATH" > /dev/null 2>&1 &)
-    fi
 }
 
 # Alternative: Launch with simple echo if Claude Code not available
