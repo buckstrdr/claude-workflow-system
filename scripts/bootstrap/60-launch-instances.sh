@@ -66,29 +66,41 @@ else
     LAUNCH_MODE="placeholder"
 fi
 
-# Launch all 9 instances
+# Launch all 12 instances across 4 windows
 if [ "$LAUNCH_MODE" = "full" ]; then
-    # Full Claude Code instances
-    launch_instance "orchestrator" "orchestrator" "Orchestrator"
-    launch_instance "core-roles.0" "librarian" "Librarian"
-    launch_instance "core-roles.1" "planner" "Planner"
-    launch_instance "core-roles.2" "architect" "Architect"
-    launch_instance "implementation.0" "dev" "Dev-A"
-    launch_instance "implementation.1" "dev" "Dev-B"
-    launch_instance "implementation.2" "qa" "QA-A"
-    launch_instance "implementation.3" "qa" "QA-B"
-    launch_instance "docs" "docs" "Docs"
+    # Window 0: Orchestrator (1 pane)
+    launch_instance "w0-orchestrator" "orchestrator" "Orchestrator"
+
+    # Window 1: Librarian, Planner-A, Planner-B (3 panes)
+    launch_instance "w1-planning.0" "librarian" "Librarian"
+    launch_instance "w1-planning.1" "planner" "Planner-A"
+    launch_instance "w1-planning.2" "planner" "Planner-B"
+
+    # Window 2: Architect-A, Architect-B, Architect-C, Dev-A (4 panes)
+    launch_instance "w2-arch-dev1.0" "architect" "Architect-A"
+    launch_instance "w2-arch-dev1.1" "architect" "Architect-B"
+    launch_instance "w2-arch-dev1.2" "architect" "Architect-C"
+    launch_instance "w2-arch-dev1.3" "dev" "Dev-A"
+
+    # Window 3: Dev-B, QA-A, QA-B, Docs (4 panes)
+    launch_instance "w3-dev2-qa-docs.0" "dev" "Dev-B"
+    launch_instance "w3-dev2-qa-docs.1" "qa" "QA-A"
+    launch_instance "w3-dev2-qa-docs.2" "qa" "QA-B"
+    launch_instance "w3-dev2-qa-docs.3" "docs" "Docs"
 else
     # Placeholder mode (tmux layout ready, manual launch required)
-    launch_placeholder "$SESSION_NAME:orchestrator" "Orchestrator"
-    launch_placeholder "$SESSION_NAME:core-roles.0" "Librarian"
-    launch_placeholder "$SESSION_NAME:core-roles.1" "Planner"
-    launch_placeholder "$SESSION_NAME:core-roles.2" "Architect"
-    launch_placeholder "$SESSION_NAME:implementation.0" "Dev-A"
-    launch_placeholder "$SESSION_NAME:implementation.1" "Dev-B"
-    launch_placeholder "$SESSION_NAME:implementation.2" "QA-A"
-    launch_placeholder "$SESSION_NAME:implementation.3" "QA-B"
-    launch_placeholder "$SESSION_NAME:docs" "Docs"
+    launch_placeholder "$SESSION_NAME:w0-orchestrator" "Orchestrator"
+    launch_placeholder "$SESSION_NAME:w1-planning.0" "Librarian"
+    launch_placeholder "$SESSION_NAME:w1-planning.1" "Planner-A"
+    launch_placeholder "$SESSION_NAME:w1-planning.2" "Planner-B"
+    launch_placeholder "$SESSION_NAME:w2-arch-dev1.0" "Architect-A"
+    launch_placeholder "$SESSION_NAME:w2-arch-dev1.1" "Architect-B"
+    launch_placeholder "$SESSION_NAME:w2-arch-dev1.2" "Architect-C"
+    launch_placeholder "$SESSION_NAME:w2-arch-dev1.3" "Dev-A"
+    launch_placeholder "$SESSION_NAME:w3-dev2-qa-docs.0" "Dev-B"
+    launch_placeholder "$SESSION_NAME:w3-dev2-qa-docs.1" "QA-A"
+    launch_placeholder "$SESSION_NAME:w3-dev2-qa-docs.2" "QA-B"
+    launch_placeholder "$SESSION_NAME:w3-dev2-qa-docs.3" "Docs"
 fi
 
 echo ""

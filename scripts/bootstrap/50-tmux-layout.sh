@@ -1,31 +1,36 @@
 #!/bin/bash
-# Create tmux session and layout
+# Create tmux session and layout for 12 Claude Code instances
+# Layout: 4 windows with 1, 3, 4, 4 panes
 
 set -euo pipefail
 
 FEATURE_NAME="$1"
 SESSION_NAME="claude-feature-$FEATURE_NAME"
 
-# Create session with orchestrator window
-tmux new-session -d -s "$SESSION_NAME" -n orchestrator
+# Window 0: Orchestrator (1 pane)
+tmux new-session -d -s "$SESSION_NAME" -n "w0-orchestrator"
 
-# Create core-roles window (3 panes)
-tmux new-window -t "$SESSION_NAME" -n core-roles
-tmux split-window -t "$SESSION_NAME:core-roles" -h
-tmux split-window -t "$SESSION_NAME:core-roles" -h
-tmux select-layout -t "$SESSION_NAME:core-roles" even-horizontal
+# Window 1: Librarian, Planner-A, Planner-B (3 panes)
+tmux new-window -t "$SESSION_NAME" -n "w1-planning"
+tmux split-window -t "$SESSION_NAME:w1-planning" -h
+tmux split-window -t "$SESSION_NAME:w1-planning" -h
+tmux select-layout -t "$SESSION_NAME:w1-planning" even-horizontal
 
-# Create implementation window (4 panes)
-tmux new-window -t "$SESSION_NAME" -n implementation
-tmux split-window -t "$SESSION_NAME:implementation" -h
-tmux split-window -t "$SESSION_NAME:implementation.0" -v
-tmux split-window -t "$SESSION_NAME:implementation.2" -v
-tmux select-layout -t "$SESSION_NAME:implementation" tiled
+# Window 2: Architect-A, Architect-B, Architect-C, Dev-A (4 panes in 2x2 grid)
+tmux new-window -t "$SESSION_NAME" -n "w2-arch-dev1"
+tmux split-window -t "$SESSION_NAME:w2-arch-dev1" -h
+tmux split-window -t "$SESSION_NAME:w2-arch-dev1.0" -v
+tmux split-window -t "$SESSION_NAME:w2-arch-dev1.2" -v
+tmux select-layout -t "$SESSION_NAME:w2-arch-dev1" tiled
 
-# Create docs window
-tmux new-window -t "$SESSION_NAME" -n docs
+# Window 3: Dev-B, QA-A, QA-B, Docs (4 panes in 2x2 grid)
+tmux new-window -t "$SESSION_NAME" -n "w3-dev2-qa-docs"
+tmux split-window -t "$SESSION_NAME:w3-dev2-qa-docs" -h
+tmux split-window -t "$SESSION_NAME:w3-dev2-qa-docs.0" -v
+tmux split-window -t "$SESSION_NAME:w3-dev2-qa-docs.2" -v
+tmux select-layout -t "$SESSION_NAME:w3-dev2-qa-docs" tiled
 
-# Return to orchestrator
-tmux select-window -t "$SESSION_NAME:orchestrator"
+# Return to orchestrator window
+tmux select-window -t "$SESSION_NAME:w0-orchestrator"
 
-echo "✅ tmux layout created: $SESSION_NAME"
+echo "✅ tmux layout created: $SESSION_NAME (4 windows, 12 panes total)"
