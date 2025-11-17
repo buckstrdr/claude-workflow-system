@@ -10,6 +10,9 @@ SESSION_NAME="claude-feature-$FEATURE_NAME"
 # Window 0: Orchestrator (1 pane)
 tmux new-session -d -s "$SESSION_NAME" -n "w0-orchestrator"
 
+# Enable aggressive-resize so each window sizes independently
+tmux set-window-option -t "$SESSION_NAME" aggressive-resize on
+
 # Window 1: Librarian, Planner-A, Planner-B (3 panes)
 tmux new-window -t "$SESSION_NAME" -n "w1-planning"
 tmux split-window -t "$SESSION_NAME:w1-planning" -h
