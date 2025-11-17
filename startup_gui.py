@@ -520,7 +520,10 @@ class MCPServerGUI:
 
                 # Terminal 1: Monitor 1 (left) - Orchestrator
                 subprocess.Popen(
-                    ["gnome-terminal", "--geometry=120x40+0+0", "--", "bash", "-c",
+                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-T", f"{feature_name} - Orchestrator", "-geometry", "120x40+0+0",
+                     "-e", "bash", "-c",
+                     f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
                     cwd=self.install_dir
                 )
@@ -528,7 +531,10 @@ class MCPServerGUI:
 
                 # Terminal 2: Monitor 3 (right) - Planning
                 subprocess.Popen(
-                    ["gnome-terminal", "--geometry=120x40+3840+0", "--", "bash", "-c",
+                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-T", f"{feature_name} - Planning", "-geometry", "120x40+3840+0",
+                     "-e", "bash", "-c",
+                     f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w1-planning'; exec bash"],
                     cwd=self.install_dir
                 )
@@ -536,7 +542,10 @@ class MCPServerGUI:
 
                 # Terminal 3: Monitor 2 (middle left) - Arch + Dev-A
                 subprocess.Popen(
-                    ["gnome-terminal", "--geometry=80x40+1920+0", "--", "bash", "-c",
+                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-T", f"{feature_name} - Architecture", "-geometry", "80x40+1920+0",
+                     "-e", "bash", "-c",
+                     f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Architecture\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w2-arch-dev1'; exec bash"],
                     cwd=self.install_dir
                 )
@@ -544,7 +553,10 @@ class MCPServerGUI:
 
                 # Terminal 4: Monitor 2 (middle right) - Dev-B + QA + Docs
                 subprocess.Popen(
-                    ["gnome-terminal", "--geometry=80x40+2560+0", "--", "bash", "-c",
+                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-T", f"{feature_name} - Dev+QA+Docs", "-geometry", "80x40+2560+0",
+                     "-e", "bash", "-c",
+                     f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
                     cwd=self.install_dir
                 )
