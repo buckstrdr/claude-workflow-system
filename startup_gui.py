@@ -584,62 +584,56 @@ class MCPServerGUI:
                 # Using wmctrl to position windows after launch
 
                 # Terminal 1: Monitor 3 (left) - Planning - FULLSCREEN
+                # Monitor 3 is 1920x1080, terminal will fill the screen
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-geometry", "220x60+0+0",  # Position on Monitor 3
+                     "-geometry", "240x67+0+0",  # Full Monitor 3 size (1920px = ~240 chars)
                      "-T", f"{feature_name} - Planning",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
                      f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w1-planning'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(2.0)
-                # Maximize after tmux has rendered
-                subprocess.run(["wmctrl", "-r", f"{feature_name} - Planning", "-b", "add,maximized_vert,maximized_horz"], check=False)
+                time.sleep(1.0)
 
                 # Terminal 2: Monitor 2 (middle left half) - Architecture
+                # Monitor 2 left half: 960px wide (half of 1920)
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-geometry", "110x60+1920+0",  # Position on Monitor 2 left
+                     "-geometry", "120x67+1920+0",  # Left half Monitor 2 (960px = ~120 chars)
                      "-T", f"{feature_name} - Architecture",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Architecture\\007\"'; "
                      f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w2-arch-dev1'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(2.0)
-                # Resize to half-width and maximize vertically after tmux renders
-                subprocess.run(["wmctrl", "-r", f"{feature_name} - Architecture", "-b", "add,maximized_vert"], check=False)
-                subprocess.run(["wmctrl", "-r", f"{feature_name} - Architecture", "-e", "0,1920,0,960,-1"], check=False)
+                time.sleep(1.0)
 
                 # Terminal 3: Monitor 2 (middle right half) - Dev+QA+Docs
+                # Monitor 2 right half: 960px wide, starting at pixel 2880 (1920+960)
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-geometry", "110x60+2880+0",  # Position on Monitor 2 right
+                     "-geometry", "120x67+2880+0",  # Right half Monitor 2 (960px = ~120 chars)
                      "-T", f"{feature_name} - Dev+QA+Docs",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
                      f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(2.0)
-                # Resize to half-width and maximize vertically after tmux renders
-                subprocess.run(["wmctrl", "-r", f"{feature_name} - Dev+QA+Docs", "-b", "add,maximized_vert"], check=False)
-                subprocess.run(["wmctrl", "-r", f"{feature_name} - Dev+QA+Docs", "-e", "0,2880,0,960,-1"], check=False)
+                time.sleep(1.0)
 
                 # Terminal 4: Monitor 1 (right) - Orchestrator - FULLSCREEN
+                # Monitor 1 is 1920x1080, terminal will fill the screen
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-geometry", "220x60+3840+0",  # Position on Monitor 1
+                     "-geometry", "240x67+3840+0",  # Full Monitor 1 size (1920px = ~240 chars)
                      "-T", f"{feature_name} - Orchestrator",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
                      f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(2.0)
-                # Maximize after tmux has rendered
-                subprocess.run(["wmctrl", "-r", f"{feature_name} - Orchestrator", "-b", "add,maximized_vert,maximized_horz"], check=False)
+                time.sleep(1.0)
 
                 messagebox.showinfo(
                     "Launched",
