@@ -482,13 +482,11 @@ class MCPServerGUI:
 
                 if check_session.returncode == 0:
                     # Session exists - automatically clean up
-                    self.log_message(f"Cleaning up existing session: {session_name}")
                     subprocess.run(["tmux", "kill-session", "-t", session_name], capture_output=True)
                     subprocess.run(["git", "worktree", "remove", "--force", f"../wt-feature-{feature_name}"],
                                  capture_output=True, cwd=self.install_dir)
                     subprocess.run(["git", "branch", "-D", f"feature/{feature_name}"],
                                  capture_output=True, cwd=self.install_dir)
-                    self.log_message(f"Old session cleaned up")
 
                 bootstrap_path = os.path.join(self.install_dir, "bootstrap.sh")
 
