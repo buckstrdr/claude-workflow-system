@@ -483,18 +483,17 @@ class MCPServerGUI:
                 )
 
                 if check_session.returncode == 0:
-                    # Session exists - automatically clean up
-                    subprocess.run(["tmux", "kill-session", "-t", session_name],
-                                 capture_output=True, check=False)
-                    time.sleep(0.5)  # Wait for tmux cleanup
-                    subprocess.run(["git", "worktree", "remove", "--force", f"../wt-feature-{feature_name}"],
-                                 capture_output=True, cwd=self.install_dir, check=False)
-                    subprocess.run(["git", "branch", "-D", f"feature/{feature_name}"],
-                                 capture_output=True, cwd=self.install_dir, check=False)
-                    # Also clean up quality gates
-                    subprocess.run(["rm", "-rf", f".git/quality-gates/{feature_name}"],
-                                 capture_output=True, cwd=self.install_dir, check=False)
-                    time.sleep(0.5)  # Wait for cleanup to complete
+                    # Session exists - run complete cleanup via bash script
+                    cleanup_script = f"""
+                        tmux kill-session -t '{session_name}' 2>/dev/null || true
+                        sleep 0.5
+                        cd '{self.install_dir}'
+                        git worktree remove --force '../wt-feature-{feature_name}' 2>/dev/null || true
+                        git branch -D 'feature/{feature_name}' 2>/dev/null || true
+                        rm -rf '.git/quality-gates/{feature_name}' 2>/dev/null || true
+                        sleep 0.5
+                    """
+                    subprocess.run(["bash", "-c", cleanup_script], check=False)
 
                 # Now run bootstrap script (creates tmux session)
                 # Source .env and run bootstrap with proper shell environment
