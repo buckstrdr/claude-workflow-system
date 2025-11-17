@@ -581,49 +581,63 @@ class MCPServerGUI:
 
                 # Monitor Layout: Monitor 3 (left) - Monitor 2 (middle) - Monitor 1 (right)
                 # Pixel positions: 0-1919 (M3), 1920-3839 (M2), 3840-5759 (M1)
+                # Using wmctrl to position windows after launch
 
                 # Terminal 1: Monitor 3 (left) - Planning - FULLSCREEN
                 subprocess.Popen(
-                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false", "-maximized",
-                     "-T", f"{feature_name} - Planning", "-geometry", "240x67+0+0",
+                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-T", f"{feature_name} - Planning",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w1-planning'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(0.3)
+                time.sleep(0.5)
+                # Position fullscreen on Monitor 3
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Planning", "-e", "0,0,0,1920,1080"], check=False)
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Planning", "-b", "add,maximized_vert,maximized_horz"], check=False)
 
                 # Terminal 2: Monitor 2 (middle left half) - Architecture
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-T", f"{feature_name} - Architecture", "-geometry", "120x67+1920+0",
+                     "-T", f"{feature_name} - Architecture",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Architecture\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w2-arch-dev1'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(0.3)
+                time.sleep(0.5)
+                # Position left half of Monitor 2
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Architecture", "-e", "0,1920,0,960,1080"], check=False)
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Architecture", "-b", "add,maximized_vert"], check=False)
 
                 # Terminal 3: Monitor 2 (middle right half) - Dev+QA+Docs
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-T", f"{feature_name} - Dev+QA+Docs", "-geometry", "120x67+2880+0",
+                     "-T", f"{feature_name} - Dev+QA+Docs",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(0.3)
+                time.sleep(0.5)
+                # Position right half of Monitor 2
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Dev+QA+Docs", "-e", "0,2880,0,960,1080"], check=False)
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Dev+QA+Docs", "-b", "add,maximized_vert"], check=False)
 
                 # Terminal 4: Monitor 1 (right) - Orchestrator - FULLSCREEN
                 subprocess.Popen(
-                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false", "-maximized",
-                     "-T", f"{feature_name} - Orchestrator", "-geometry", "240x67+3840+0",
+                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-T", f"{feature_name} - Orchestrator",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
                     cwd=self.install_dir
                 )
+                time.sleep(0.5)
+                # Position fullscreen on Monitor 1
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Orchestrator", "-e", "0,3840,0,1920,1080"], check=False)
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Orchestrator", "-b", "add,maximized_vert,maximized_horz"], check=False)
 
                 messagebox.showinfo(
                     "Launched",
