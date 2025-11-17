@@ -589,7 +589,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Planning",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
-                     f"tmux attach-session -t '{session_name}:w1-planning'; exec bash"],
+                     f"tmux attach-session -d -t '{session_name}:w1-planning'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(0.5)
@@ -603,7 +603,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Architecture",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Architecture\\007\"'; "
-                     f"tmux attach-session -t '{session_name}:w2-arch-dev1'; exec bash"],
+                     f"tmux attach-session -d -t '{session_name}:w2-arch-dev1'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(0.5)
@@ -617,7 +617,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Dev+QA+Docs",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
-                     f"tmux attach-session -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
+                     f"tmux attach-session -d -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(0.5)
@@ -631,7 +631,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Orchestrator",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
-                     f"tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
+                     f"tmux attach-session -d -t '{session_name}:w0-orchestrator'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(0.5)
