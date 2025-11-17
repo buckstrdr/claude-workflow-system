@@ -4,7 +4,7 @@
 set -euo pipefail
 
 FEATURE_NAME="$1"
-SESSION_NAME="claude-feature-$FEATURE_NAME"
+BASE_NAME="claude-$FEATURE_NAME"
 WORKTREE_PATH="../wt-feature-$FEATURE_NAME"
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
@@ -18,9 +18,10 @@ build_prompt() {
 
 # Launch function with actual Claude Code command
 launch_instance() {
-    local pane="$1"
-    local role="$2"
-    local role_name="$3"
+    local session="$1"  # Now takes full session name like "claude-test-orchestrator"
+    local pane="$2"     # Pane number within that session
+    local role="$3"
+    local role_name="$4"
 
     # Build system prompt and save to temp file
     local prompt_file="/tmp/prompt_${role}.txt"
@@ -32,7 +33,7 @@ launch_instance() {
 
     # Launch Claude Code with role-specific prompt from file
     # MCP servers accessible via environment but not in config (clean context)
-    tmux send-keys -t "$SESSION_NAME:$pane" \
+    tmux send-keys -t "$session.$pane" \
       "cd $WORKTREE_PATH && source $PROJECT_ROOT/.env && $CLAUDE_CLI --mcp-config $PROJECT_ROOT/mcp-config.json --system-prompt \"\$(cat $prompt_file)\" --dangerously-skip-permissions" C-m
 }
 
@@ -66,41 +67,41 @@ else
     LAUNCH_MODE="placeholder"
 fi
 
-# Launch all 12 instances across 4 windows
+# Launch all 12 instances across 4 separate sessions
 if [ "$LAUNCH_MODE" = "full" ]; then
-    # Window 0: Orchestrator (1 pane)
-    launch_instance "w0-orchestrator" "orchestrator" "Orchestrator"
+    # Session 1: Orchestrator (1 pane)
+    launch_instance "${BASE_NAME}-orchestrator" "0" "orchestrator" "Orchestrator"
 
-    # Window 1: Librarian, Planner-A, Planner-B (3 panes)
-    launch_instance "w1-planning.0" "librarian" "Librarian"
-    launch_instance "w1-planning.1" "planner" "Planner-A"
-    launch_instance "w1-planning.2" "planner" "Planner-B"
+    # Session 2: Planning (3 panes)
+    launch_instance "${BASE_NAME}-planning" "0" "librarian" "Librarian"
+    launch_instance "${BASE_NAME}-planning" "1" "planner" "Planner-A"
+    launch_instance "${BASE_NAME}-planning" "2" "planner" "Planner-B"
 
-    # Window 2: Architect-A, Architect-B, Architect-C, Dev-A (4 panes)
-    launch_instance "w2-arch-dev1.0" "architect" "Architect-A"
-    launch_instance "w2-arch-dev1.1" "architect" "Architect-B"
-    launch_instance "w2-arch-dev1.2" "architect" "Architect-C"
-    launch_instance "w2-arch-dev1.3" "dev" "Dev-A"
+    # Session 3: Architecture (4 panes)
+    launch_instance "${BASE_NAME}-architecture" "0" "architect" "Architect-A"
+    launch_instance "${BASE_NAME}-architecture" "1" "architect" "Architect-B"
+    launch_instance "${BASE_NAME}-architecture" "2" "architect" "Architect-C"
+    launch_instance "${BASE_NAME}-architecture" "3" "dev" "Dev-A"
 
-    # Window 3: Dev-B, QA-A, QA-B, Docs (4 panes)
-    launch_instance "w3-dev2-qa-docs.0" "dev" "Dev-B"
-    launch_instance "w3-dev2-qa-docs.1" "qa" "QA-A"
-    launch_instance "w3-dev2-qa-docs.2" "qa" "QA-B"
-    launch_instance "w3-dev2-qa-docs.3" "docs" "Docs"
+    # Session 4: Dev+QA+Docs (4 panes)
+    launch_instance "${BASE_NAME}-dev-qa-docs" "0" "dev" "Dev-B"
+    launch_instance "${BASE_NAME}-dev-qa-docs" "1" "qa" "QA-A"
+    launch_instance "${BASE_NAME}-dev-qa-docs" "2" "qa" "QA-B"
+    launch_instance "${BASE_NAME}-dev-qa-docs" "3" "docs" "Docs"
 else
     # Placeholder mode (tmux layout ready, manual launch required)
-    launch_placeholder "$SESSION_NAME:w0-orchestrator" "Orchestrator"
-    launch_placeholder "$SESSION_NAME:w1-planning.0" "Librarian"
-    launch_placeholder "$SESSION_NAME:w1-planning.1" "Planner-A"
-    launch_placeholder "$SESSION_NAME:w1-planning.2" "Planner-B"
-    launch_placeholder "$SESSION_NAME:w2-arch-dev1.0" "Architect-A"
-    launch_placeholder "$SESSION_NAME:w2-arch-dev1.1" "Architect-B"
-    launch_placeholder "$SESSION_NAME:w2-arch-dev1.2" "Architect-C"
-    launch_placeholder "$SESSION_NAME:w2-arch-dev1.3" "Dev-A"
-    launch_placeholder "$SESSION_NAME:w3-dev2-qa-docs.0" "Dev-B"
-    launch_placeholder "$SESSION_NAME:w3-dev2-qa-docs.1" "QA-A"
-    launch_placeholder "$SESSION_NAME:w3-dev2-qa-docs.2" "QA-B"
-    launch_placeholder "$SESSION_NAME:w3-dev2-qa-docs.3" "Docs"
+    launch_placeholder "${BASE_NAME}-orchestrator" "Orchestrator"
+    launch_placeholder "${BASE_NAME}-planning" "Librarian"
+    launch_placeholder "${BASE_NAME}-planning" "Planner-A"
+    launch_placeholder "${BASE_NAME}-planning" "Planner-B"
+    launch_placeholder "${BASE_NAME}-architecture" "Architect-A"
+    launch_placeholder "${BASE_NAME}-architecture" "Architect-B"
+    launch_placeholder "${BASE_NAME}-architecture" "Architect-C"
+    launch_placeholder "${BASE_NAME}-architecture" "Dev-A"
+    launch_placeholder "${BASE_NAME}-dev-qa-docs" "Dev-B"
+    launch_placeholder "${BASE_NAME}-dev-qa-docs" "QA-A"
+    launch_placeholder "${BASE_NAME}-dev-qa-docs" "QA-B"
+    launch_placeholder "${BASE_NAME}-dev-qa-docs" "Docs"
 fi
 
 echo ""
@@ -108,7 +109,7 @@ echo "✅ All instances launched in $LAUNCH_MODE mode"
 echo ""
 echo "📍 Feature: $FEATURE_NAME"
 echo "📂 Worktree: $WORKTREE_PATH"
-echo "🪟 Tmux session: $SESSION_NAME"
+echo "🪟 Tmux sessions: ${BASE_NAME}-*"
 echo ""
 
 if [ "$LAUNCH_MODE" = "placeholder" ]; then

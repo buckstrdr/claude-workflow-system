@@ -575,9 +575,9 @@ class MCPServerGUI:
                     messagebox.showerror("Bootstrap Failed", error_msg)
                     return
 
-                # Now launch 4 terminals attached to different windows
-                # Get screen geometry for positioning
-                session_name = f"claude-feature-{feature_name}"
+                # Now launch 4 terminals attached to different SESSIONS (not windows)
+                # Each terminal gets its own tmux session to prevent resize interference
+                base_name = f"claude-{feature_name}"
 
                 # Monitor Layout: Monitor 3 (left) - Monitor 2 (middle) - Monitor 1 (right)
                 # Pixel positions: 0-1919 (M3), 1920-3839 (M2), 3840-5759 (M1)
@@ -591,7 +591,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Planning",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
-                     f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w1-planning'; exec bash"],
+                     f"tmux attach-session -t '{base_name}-planning'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(1.0)
@@ -604,7 +604,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Architecture",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Architecture\\007\"'; "
-                     f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w2-arch-dev1'; exec bash"],
+                     f"tmux attach-session -t '{base_name}-architecture'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(1.0)
@@ -617,7 +617,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Dev+QA+Docs",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
-                     f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
+                     f"tmux attach-session -t '{base_name}-dev-qa-docs'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(1.0)
@@ -630,7 +630,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Orchestrator",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
-                     f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
+                     f"tmux attach-session -t '{base_name}-orchestrator'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(1.0)
