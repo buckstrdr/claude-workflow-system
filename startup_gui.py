@@ -241,7 +241,19 @@ class MCPServerGUI:
             cursor="hand2",
             state=tk.DISABLED
         )
-        self.launch_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 0))
+        self.launch_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+
+        self.cleanup_button = tk.Button(
+            button_frame,
+            text="🗑️  Close All Sessions",
+            font=("Arial", 12, "bold"),
+            bg="#e74c3c",
+            fg="white",
+            command=self.cleanup_all_sessions,
+            height=2,
+            cursor="hand2"
+        )
+        self.cleanup_button.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(5, 0))
 
         # Refresh button
         refresh_frame = tk.Frame(content_frame, bg="#ecf0f1")
@@ -444,6 +456,47 @@ class MCPServerGUI:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to stop servers:\n{e}")
 
+    def cleanup_all_sessions(self):
+        """Clean up all claude-feature tmux sessions"""
+        try:
+            # Get all claude-feature sessions
+            result = subprocess.run(
+                ["tmux", "list-sessions"],
+                capture_output=True,
+                text=True
+            )
+
+            if result.returncode == 0:
+                sessions = [line.split(":")[0] for line in result.stdout.splitlines()
+                           if line.startswith("claude-feature-")]
+
+                if not sessions:
+                    messagebox.showinfo("Cleanup", "No claude-feature sessions found")
+                    return
+
+                # Kill all sessions
+                cleanup_script = "\n".join([f"tmux kill-session -t '{s}' 2>/dev/null || true"
+                                           for s in sessions])
+                subprocess.run(["bash", "-c", cleanup_script])
+
+                # Clean up worktrees and branches
+                for session in sessions:
+                    feature_name = session.replace("claude-feature-", "")
+                    subprocess.run(["git", "worktree", "remove", "--force", f"../wt-feature-{feature_name}"],
+                                 capture_output=True, cwd=self.install_dir, check=False)
+                    subprocess.run(["git", "branch", "-D", f"feature/{feature_name}"],
+                                 capture_output=True, cwd=self.install_dir, check=False)
+                    subprocess.run(["rm", "-rf", f".git/quality-gates/{feature_name}"],
+                                 capture_output=True, cwd=self.install_dir, check=False)
+
+                messagebox.showinfo("Cleanup Complete",
+                                  f"Cleaned up {len(sessions)} session(s):\n" + "\n".join(sessions))
+            else:
+                messagebox.showinfo("Cleanup", "No tmux sessions found")
+
+        except Exception as e:
+            messagebox.showerror("Cleanup Error", f"Failed to cleanup sessions:\n{e}")
+
     def launch_orchestrator(self):
         """Launch the orchestrator"""
         # Prompt for feature name
@@ -473,27 +526,36 @@ class MCPServerGUI:
             dialog.destroy()
 
             try:
-                session_name = f"claude-feature-{feature_name}"
-
-                # IMPORTANT: Clean up BEFORE running bootstrap (not after)
-                # Bootstrap's preflight check will fail if session exists
-                check_session = subprocess.run(
-                    ["tmux", "has-session", "-t", session_name],
-                    capture_output=True
+                # ALWAYS clean up ALL claude-feature sessions before launching
+                # This prevents any stale sessions from causing issues
+                result = subprocess.run(
+                    ["tmux", "list-sessions"],
+                    capture_output=True,
+                    text=True
                 )
 
-                if check_session.returncode == 0:
-                    # Session exists - run complete cleanup via bash script
-                    cleanup_script = f"""
-                        tmux kill-session -t '{session_name}' 2>/dev/null || true
-                        sleep 0.5
-                        cd '{self.install_dir}'
-                        git worktree remove --force '../wt-feature-{feature_name}' 2>/dev/null || true
-                        git branch -D 'feature/{feature_name}' 2>/dev/null || true
-                        rm -rf '.git/quality-gates/{feature_name}' 2>/dev/null || true
-                        sleep 0.5
-                    """
-                    subprocess.run(["bash", "-c", cleanup_script], check=False)
+                if result.returncode == 0:
+                    sessions = [line.split(":")[0] for line in result.stdout.splitlines()
+                               if line.startswith("claude-feature-")]
+
+                    if sessions:
+                        # Kill all existing sessions
+                        cleanup_script = "\n".join([f"tmux kill-session -t '{s}' 2>/dev/null || true"
+                                                   for s in sessions])
+                        subprocess.run(["bash", "-c", cleanup_script])
+
+                        # Clean up worktrees and branches
+                        for session in sessions:
+                            fname = session.replace("claude-feature-", "")
+                            subprocess.run(["git", "worktree", "remove", "--force", f"../wt-feature-{fname}"],
+                                         capture_output=True, cwd=self.install_dir, check=False)
+                            subprocess.run(["git", "branch", "-D", f"feature/{fname}"],
+                                         capture_output=True, cwd=self.install_dir, check=False)
+                            subprocess.run(["rm", "-rf", f".git/quality-gates/{fname}"],
+                                         capture_output=True, cwd=self.install_dir, check=False)
+                        time.sleep(1)  # Wait for cleanup to complete
+
+                session_name = f"claude-feature-{feature_name}"
 
                 # Now run bootstrap script (creates tmux session)
                 # Source .env and run bootstrap with proper shell environment
