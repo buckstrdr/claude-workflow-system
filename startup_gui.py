@@ -594,7 +594,9 @@ class MCPServerGUI:
                      f"tmux attach-session -t '{base_name}-planning'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(1.0)
+                time.sleep(1.5)
+                # Use wmctrl to maximize on Monitor 3
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Planning", "-b", "add,maximized_vert,maximized_horz"], check=False)
 
                 # Terminal 2: Monitor 2 (middle left half) - Architecture
                 # Monitor 2 left half: 960px wide (half of 1920)
@@ -607,7 +609,10 @@ class MCPServerGUI:
                      f"tmux attach-session -t '{base_name}-architecture'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(1.0)
+                time.sleep(1.5)
+                # Position on left half of Monitor 2 using wmctrl
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Architecture", "-b", "add,maximized_vert"], check=False)
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Architecture", "-e", "0,1920,0,960,-1"], check=False)
 
                 # Terminal 3: Monitor 2 (middle right half) - Dev+QA+Docs
                 # Monitor 2 right half: 960px wide, starting at pixel 2880 (1920+960)
@@ -620,7 +625,10 @@ class MCPServerGUI:
                      f"tmux attach-session -t '{base_name}-dev-qa-docs'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(1.0)
+                time.sleep(1.5)
+                # Position on right half of Monitor 2 using wmctrl
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Dev+QA+Docs", "-b", "add,maximized_vert"], check=False)
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Dev+QA+Docs", "-e", "0,2880,0,960,-1"], check=False)
 
                 # Terminal 4: Monitor 1 (right) - Orchestrator - FULLSCREEN
                 # Monitor 1 is 1920x1080, terminal will fill the screen
@@ -633,7 +641,9 @@ class MCPServerGUI:
                      f"tmux attach-session -t '{base_name}-orchestrator'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(1.0)
+                time.sleep(1.5)
+                # Use wmctrl to maximize on Monitor 1
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Orchestrator", "-b", "add,maximized_vert,maximized_horz"], check=False)
 
                 messagebox.showinfo(
                     "Launched",
