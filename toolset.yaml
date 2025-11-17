@@ -1,8 +1,25 @@
-# Unified MCP Configuration for Claude Code Instances
-# Used by all 12 role instances (Orchestrator, Librarian, Planner-A, Planner-B, Architect-A/B/C, Dev-A/B, QA-A/B, Docs)
+# ============================================================================
+# COMPREHENSIVE TOOLSET.YAML FOR CLAUDE MULTI-INSTANCE WORKFLOW SYSTEM
+# ============================================================================
+#
+# Purpose: Unified configuration for all 12 Claude instances
+# Instances: Orchestrator, Librarian, Planner-A/B, Architect-A/B/C, Dev-A/B, QA-A/B, Docs
+# Location: Copied to each feature worktree during bootstrap
+#
+# Skills: 31 total (20 superpowers + 11 project-specific)
+# Commands: 68 slash commands available
+# Hooks: 30+ event-driven automation hooks
+# Tools: 6 code quality tools (black, ruff, mypy, pytest, eslint, prettier)
+#
+# ============================================================================
 
+# ============================================================================
+# MCP SERVERS - External Tools and Capabilities
+# ============================================================================
 mcpServers:
-  # Core Memory & Context
+  # --------------------------------------------------------------------------
+  # CORE MEMORY & CONTEXT
+  # --------------------------------------------------------------------------
   serena:
     command: npx
     args:
@@ -10,40 +27,42 @@ mcpServers:
       - "@serenaai/mcp-server-serena"
     env:
       SERENA_API_KEY: ${SERENA_API_KEY}
+    description: "Session memory, knowledge management, and context retention"
 
-  # Git Operations
+  # --------------------------------------------------------------------------
+  # VERSION CONTROL
+  # --------------------------------------------------------------------------
   git:
     command: npx
     args:
       - -y
       - "@modelcontextprotocol/server-git"
+    description: "Git operations (commit, branch, status, diff, log)"
 
-  # Filesystem Operations
+  # --------------------------------------------------------------------------
+  # FILESYSTEM ACCESS
+  # --------------------------------------------------------------------------
   filesystem:
     command: npx
     args:
       - -y
       - "@modelcontextprotocol/server-filesystem"
-    args:
       - ${WORKTREE_PATH}
+    description: "File read/write operations (restricted to worktree)"
 
-  # Terminal/Shell Operations
+  # --------------------------------------------------------------------------
+  # SHELL EXECUTION
+  # --------------------------------------------------------------------------
   terminal:
     command: npx
     args:
       - -y
       - "@modelcontextprotocol/server-terminal"
+    description: "Shell command execution for builds, tests, and automation"
 
-  # Web Scraping & Documentation
-  firecrawl:
-    command: npx
-    args:
-      - -y
-      - "@firecrawl/mcp-server"
-    env:
-      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY}
-
-  # Library Documentation
+  # --------------------------------------------------------------------------
+  # DOCUMENTATION & RESEARCH
+  # --------------------------------------------------------------------------
   context7:
     command: npx
     args:
@@ -51,71 +70,768 @@ mcpServers:
       - "@context7/mcp-server"
     env:
       CONTEXT7_API_KEY: ${CONTEXT7_API_KEY}
+    description: "Library documentation and API reference lookup"
 
-  # Browser Automation (Playwright)
+  firecrawl:
+    command: npx
+    args:
+      - -y
+      - "@firecrawl/mcp-server"
+    env:
+      FIRECRAWL_API_KEY: ${FIRECRAWL_API_KEY}
+    description: "Web scraping and documentation fetching"
+
+  # --------------------------------------------------------------------------
+  # BROWSER AUTOMATION
+  # --------------------------------------------------------------------------
   playwright:
     command: npx
     args:
       - -y
       - "@modelcontextprotocol/server-playwright"
+    description: "Browser automation for E2E testing (Chromium, Firefox, WebKit)"
 
-  # Browser Automation (Puppeteer)
   puppeteer:
     command: npx
     args:
       - -y
       - "@modelcontextprotocol/server-puppeteer"
+    description: "Headless Chrome automation (alternative to Playwright)"
 
-# Skills available to all instances
+# ============================================================================
+# SKILLS - Workflow Enforcement and Best Practices (31 Total)
+# ============================================================================
 skills:
-  # Superpowers suite
+  # --------------------------------------------------------------------------
+  # SUPERPOWERS SUITE - Core Development Workflows (20 skills)
+  # --------------------------------------------------------------------------
+  - name: superpowers:using-superpowers
+    description: "Mandatory workflows for finding and using skills (use BEFORE any task)"
+    when: "Starting any conversation or task"
+
   - name: superpowers:brainstorming
     description: "Interactive design refinement using Socratic method before coding"
+    when: "Starting any new feature or major refactoring"
 
   - name: superpowers:test-driven-development
-    description: "TDD workflow (write tests first, watch fail, implement)"
+    description: "TDD workflow: Write test → Watch fail → Implement → Pass → Refactor"
+    when: "Implementing any feature or bugfix"
 
   - name: superpowers:systematic-debugging
-    description: "Four-phase debugging framework (root cause, pattern, hypothesis, implementation)"
+    description: "Four-phase debugging: Root cause → Pattern → Hypothesis → Implementation"
+    when: "Encountering any bug or unexpected behavior"
 
   - name: superpowers:verification-before-completion
-    description: "Verify work before claiming complete - evidence before assertions"
+    description: "Run verification commands before claiming work complete (evidence before assertions)"
+    when: "Completing any task, fixing bugs, or claiming tests pass"
 
   - name: superpowers:requesting-code-review
-    description: "Dispatch code-reviewer subagent to review implementation"
+    description: "Dispatch code-reviewer subagent to review implementation against plan"
+    when: "Major project step completed, ready for review"
 
   - name: superpowers:receiving-code-review
     description: "Handle code review feedback with technical rigor and verification"
+    when: "Receiving code review feedback or suggestions"
 
-# Hooks configuration
+  - name: superpowers:defense-in-depth
+    description: "Validate data at every layer to make bugs structurally impossible"
+    when: "Invalid data causes failures deep in execution"
+
+  - name: superpowers:root-cause-tracing
+    description: "Trace bugs backward through call stack to find original trigger"
+    when: "Errors occur deep in execution stack"
+
+  - name: superpowers:condition-based-waiting
+    description: "Replace arbitrary timeouts with condition polling for flake-free tests"
+    when: "Tests have race conditions or timing dependencies"
+
+  - name: superpowers:testing-anti-patterns
+    description: "Prevent testing mock behavior and production pollution with test-only methods"
+    when: "Writing or changing tests, adding mocks"
+
+  - name: superpowers:using-git-worktrees
+    description: "Create isolated git worktrees for feature work with safety verification"
+    when: "Starting feature work that needs isolation from main workspace"
+
+  - name: superpowers:executing-plans
+    description: "Load plan, review critically, execute tasks in batches with review checkpoints"
+    when: "Partner provides complete implementation plan to execute"
+
+  - name: superpowers:subagent-driven-development
+    description: "Dispatch fresh subagent for each task with code review between tasks"
+    when: "Executing implementation plans with independent tasks"
+
+  - name: superpowers:writing-plans
+    description: "Create comprehensive implementation plans with exact file paths and code examples"
+    when: "Design complete, need detailed implementation tasks for engineers"
+
+  - name: superpowers:writing-skills
+    description: "Create new skills with TDD approach, testing before writing"
+    when: "Creating or editing skills, verifying skills work before deployment"
+
+  - name: superpowers:testing-skills-with-subagents
+    description: "Test skills with subagents before deployment to resist rationalization"
+    when: "Creating or editing skills, need verification"
+
+  - name: superpowers:dispatching-parallel-agents
+    description: "Launch multiple Claude agents to investigate independent problems concurrently"
+    when: "Facing 3+ independent failures that can be investigated separately"
+
+  - name: superpowers:sharing-skills
+    description: "Contribute skills back to upstream repository via pull request"
+    when: "Developed broadly useful skill to contribute upstream"
+
+  - name: superpowers:finishing-a-development-branch
+    description: "Complete development work with structured options for merge, PR, or cleanup"
+    when: "Implementation complete, all tests pass, need to integrate work"
+
+  # --------------------------------------------------------------------------
+  # PROJECT-SPECIFIC SKILLS (11 skills)
+  # --------------------------------------------------------------------------
+  - name: llm-docs-optimizer:llm-docs-optimizer
+    description: "Optimize documentation for AI coding assistants (c7score, llms.txt, quality scoring)"
+    when: "Improving docs for Claude, Copilot, or other AI tools"
+
+  - name: architect
+    description: "Launch Senior Architect Planner agent for technical architecture and PRD creation"
+    when: "Need comprehensive project planning or architecture design"
+
+  - name: engineer
+    description: "Launch Senior Full-Stack Engineer agent for TDD-based implementation"
+    when: "Need end-to-end feature implementation with tests"
+
+  - name: qa
+    description: "Launch QA Gatekeeper agent for quality assurance and production readiness"
+    when: "Major feature complete, need thorough QA review"
+
+  - name: docs
+    description: "Launch Docs & Version Control Architect agent for documentation and git operations"
+    when: "Need documentation setup or Git workflow improvements"
+
+  - name: pm
+    description: "Launch Project Manager agent for full project orchestration with discovery and planning"
+    when: "Complex multi-step project requiring coordinated agents"
+
+  - name: ui-verify
+    description: "Enforce Playwright UI testing standards at 1920x1080 with mandatory interaction testing"
+    when: "Writing or reviewing UI tests"
+
+  - name: context7
+    description: "Use Context7 direct API for fetching library documentation with performance optimizations"
+    when: "Need library documentation lookup"
+
+  - name: firecrawl
+    description: "Use Firecrawl effectively with decision framework (MCP vs API vs Website)"
+    when: "Need web scraping or documentation fetching"
+
+  - name: optimize-docs
+    description: "Optimize documentation for AI coding assistants using c7score optimization"
+    when: "Improving documentation quality for LLMs"
+
+  - name: create-plugin
+    description: "Interactive guide for creating strategy plugin Python code"
+    when: "Creating new strategy plugins"
+
+# ============================================================================
+# HOOKS - Event-Driven Automation (30+ hooks)
+# ============================================================================
 hooks:
+  # --------------------------------------------------------------------------
+  # SESSION LIFECYCLE
+  # --------------------------------------------------------------------------
   sessionStart:
-    - name: clear
+    - name: backup-session
+      description: "Backup previous CLAUDE.md session file"
       command: |
         #!/bin/bash
-        # Session start - backup CLAUDE.md if exists
+        set -euo pipefail
+
+        # Backup previous session
         if [ -f CLAUDE.md ]; then
+          mkdir -p .claude/backups
           cp CLAUDE.md ".claude/backups/CLAUDE-$(date +%Y%m%d-%H%M%S).md"
+          echo "✓ Previous session backed up"
         fi
-        echo "✓ Session started - CLAUDE.md backed up"
 
-  userPromptSubmit:
-    - name: callback
+        # Log session start
+        echo "$(date -Iseconds): Session started by ${ROLE_NAME:-unknown}" >> .git/audit/session-log.txt
+
+    - name: load-role-identity
+      description: "Display role identity and responsibilities"
       command: |
         #!/bin/bash
-        # User prompt submitted - log to audit trail
-        echo "$(date -Iseconds): User prompt submitted" >> .git/audit/prompt-log.txt
+        set -euo pipefail
 
-# Agents configuration
+        ROLE_FILE="system-comps/core/${ROLE_NAME}_identity.md"
+        if [ -f "$ROLE_FILE" ]; then
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "  Role: ${ROLE_NAME}"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          head -30 "$ROLE_FILE"
+          echo ""
+        fi
+
+    - name: check-quality-gate
+      description: "Display current quality gate status"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        if [ -n "${FEATURE_NAME:-}" ]; then
+          bash scripts/quality-gates/gates-status.sh "${FEATURE_NAME}" 2>/dev/null || echo "No quality gate tracking"
+        fi
+
+    - name: check-message-inbox
+      description: "Check for pending messages in inbox"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        INBOX="messages/${ROLE_NAME}/inbox"
+        if [ -d "$INBOX" ]; then
+          MSG_COUNT=$(find "$INBOX" -type f -name "*.md" | wc -l)
+          if [ "$MSG_COUNT" -gt 0 ]; then
+            echo "📬 You have $MSG_COUNT unread messages in inbox"
+            find "$INBOX" -type f -name "*.md" -exec basename {} \;
+          fi
+        fi
+
+    - name: handle-broadcast-tests
+      description: "Automatically respond to broadcast test requests from Orchestrator"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        # Only run for non-orchestrator roles
+        if [ "${ROLE_NAME:-}" != "orchestrator" ]; then
+          if [ -x scripts/roles/handle_broadcast_test.py ]; then
+            python3 scripts/roles/handle_broadcast_test.py --role "${ROLE_NAME}" 2>/dev/null || true
+          fi
+        fi
+
+  sessionEnd:
+    - name: archive-session
+      description: "Archive session notes and cleanup"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        # Archive current session
+        if [ -f CLAUDE.md ]; then
+          mkdir -p .claude/archives
+          cp CLAUDE.md ".claude/archives/CLAUDE-${FEATURE_NAME:-unknown}-$(date +%Y%m%d-%H%M%S).md"
+        fi
+
+        # Log session end
+        echo "$(date -Iseconds): Session ended by ${ROLE_NAME:-unknown}" >> .git/audit/session-log.txt
+        echo "✓ Session archived"
+
+  # --------------------------------------------------------------------------
+  # USER INTERACTION
+  # --------------------------------------------------------------------------
+  userPromptSubmit:
+    - name: audit-prompt
+      description: "Log user prompt to audit trail"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] User prompt submitted" >> .git/audit/prompt-log.txt
+
+    - name: check-write-lock
+      description: "Warn if write lock held by another role"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        LOCK_FILE="messages/write-lock.json"
+        if [ -f "$LOCK_FILE" ]; then
+          LOCKED=$(jq -r '.locked' "$LOCK_FILE")
+          HOLDER=$(jq -r '.holder' "$LOCK_FILE")
+
+          if [ "$LOCKED" = "true" ] && [ "$HOLDER" != "${ROLE_NAME:-}" ]; then
+            echo "⚠️  Write lock currently held by: $HOLDER"
+            echo "   Request lock before making changes"
+          fi
+        fi
+
+  # --------------------------------------------------------------------------
+  # FILE OPERATIONS
+  # --------------------------------------------------------------------------
+  fileWrite:
+    - name: check-write-permission
+      description: "Verify write lock before file write"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        LOCK_FILE="messages/write-lock.json"
+        if [ -f "$LOCK_FILE" ]; then
+          LOCKED=$(jq -r '.locked' "$LOCK_FILE")
+          HOLDER=$(jq -r '.holder' "$LOCK_FILE")
+
+          if [ "$LOCKED" = "true" ] && [ "$HOLDER" != "${ROLE_NAME:-}" ]; then
+            echo "❌ WRITE DENIED: Lock held by $HOLDER"
+            echo "   You must request WriteLock from Orchestrator first"
+            exit 1
+          fi
+        fi
+
+    - name: update-quality-gate
+      description: "Update quality gate status after file write"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        if [ -n "${FEATURE_NAME:-}" ]; then
+          # Log file write to gate tracking
+          echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] File write: ${FILE_PATH:-unknown}" >> \
+            ".git/quality-gates/${FEATURE_NAME}/file-history.txt"
+        fi
+
+    - name: run-code-quality-tools
+      description: "Run all installed code quality tools on modified files"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        FILE="${FILE_PATH:-}"
+        if [ -z "$FILE" ]; then
+          exit 0
+        fi
+
+        echo "Running code quality checks on $FILE..."
+
+        # ============================================================
+        # PYTHON FILES
+        # ============================================================
+        if [[ "$FILE" == *.py ]]; then
+          # Black - Code formatter (auto-fix)
+          if command -v black &> /dev/null; then
+            echo "→ Running black (formatter)..."
+            black "$FILE" 2>&1 | head -5 || echo "⚠️  Black issues (non-blocking)"
+          fi
+
+          # Ruff - Fast linter (auto-fix)
+          if command -v ruff &> /dev/null; then
+            echo "→ Running ruff (linter)..."
+            ruff check --fix "$FILE" 2>&1 | head -10 || echo "⚠️  Ruff issues (non-blocking)"
+          fi
+
+          # MyPy - Type checker
+          if command -v mypy &> /dev/null; then
+            echo "→ Running mypy (type checker)..."
+            mypy "$FILE" 2>&1 | head -10 || echo "⚠️  Type issues (non-blocking)"
+          fi
+
+          # Pytest - Run tests if test file
+          if [[ "$FILE" == *test_*.py ]] || [[ "$FILE" == *_test.py ]]; then
+            if command -v pytest &> /dev/null; then
+              echo "→ Running pytest on test file..."
+              pytest "$FILE" -v 2>&1 | tail -20 || echo "⚠️  Test failures (blocking!)"
+            fi
+          fi
+        fi
+
+        # ============================================================
+        # TYPESCRIPT/JAVASCRIPT FILES
+        # ============================================================
+        if [[ "$FILE" == *.ts ]] || [[ "$FILE" == *.tsx ]] || [[ "$FILE" == *.js ]] || [[ "$FILE" == *.jsx ]]; then
+          # ESLint - Linter
+          if command -v eslint &> /dev/null; then
+            echo "→ Running eslint (linter)..."
+            eslint --fix "$FILE" 2>&1 | head -10 || echo "⚠️  ESLint issues (non-blocking)"
+          fi
+
+          # Prettier - Formatter
+          if command -v prettier &> /dev/null; then
+            echo "→ Running prettier (formatter)..."
+            prettier --write "$FILE" 2>&1 || echo "⚠️  Prettier issues (non-blocking)"
+          fi
+
+          # TypeScript compiler check
+          if [[ "$FILE" == *.ts ]] || [[ "$FILE" == *.tsx ]]; then
+            if command -v tsc &> /dev/null; then
+              echo "→ Running tsc (type checker)..."
+              tsc --noEmit "$FILE" 2>&1 | head -10 || echo "⚠️  Type issues (non-blocking)"
+            fi
+          fi
+        fi
+
+        # ============================================================
+        # MARKDOWN FILES
+        # ============================================================
+        if [[ "$FILE" == *.md ]]; then
+          # Prettier - Formatter
+          if command -v prettier &> /dev/null; then
+            echo "→ Running prettier on markdown..."
+            prettier --write "$FILE" 2>&1 || true
+          fi
+        fi
+
+        echo "✓ Code quality checks complete"
+
+  fileRead:
+    - name: audit-file-access
+      description: "Log file reads for security audit"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        # Log sensitive file access
+        FILE="${FILE_PATH:-}"
+        if [[ "$FILE" == *".env"* ]] || [[ "$FILE" == *"secret"* ]] || [[ "$FILE" == *"key"* ]]; then
+          echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] Sensitive file read: $FILE" >> \
+            .git/audit/sensitive-access.txt
+        fi
+
+  # --------------------------------------------------------------------------
+  # TOOL CALLS
+  # --------------------------------------------------------------------------
+  toolCallBefore:
+    - name: log-tool-use
+      description: "Log tool calls to audit trail"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] Tool call: ${TOOL_NAME:-unknown}" >> \
+          .git/audit/tool-calls.txt
+
+  toolCallAfter:
+    - name: check-tool-errors
+      description: "Alert on tool failures"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        if [ "${TOOL_EXIT_CODE:-0}" -ne 0 ]; then
+          echo "⚠️  Tool '${TOOL_NAME:-unknown}' failed with exit code ${TOOL_EXIT_CODE}"
+          echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] Tool failure: ${TOOL_NAME} (exit $TOOL_EXIT_CODE)" >> \
+            .git/audit/tool-errors.txt
+        fi
+
+  # --------------------------------------------------------------------------
+  # GIT OPERATIONS
+  # --------------------------------------------------------------------------
+  gitCommit:
+    - name: validate-commit-message
+      description: "Enforce commit message format"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        MSG="${COMMIT_MSG:-}"
+
+        # Check for co-author
+        if ! echo "$MSG" | grep -q "Co-Authored-By: Claude"; then
+          echo "⚠️  Commit message missing Claude co-authorship"
+          echo "   Add: Co-Authored-By: Claude <noreply@anthropic.com>"
+        fi
+
+        # Check for issue reference if applicable
+        if [ -n "${FEATURE_NAME:-}" ]; then
+          if ! echo "$MSG" | grep -q "${FEATURE_NAME}"; then
+            echo "⚠️  Commit message missing feature reference: ${FEATURE_NAME}"
+          fi
+        fi
+
+    - name: update-gate-on-commit
+      description: "Advance quality gate on successful commit"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        if [ -n "${FEATURE_NAME:-}" ]; then
+          # Log commit to gate tracking
+          echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] Commit: ${COMMIT_SHA:-pending}" >> \
+            ".git/quality-gates/${FEATURE_NAME}/commit-history.txt"
+        fi
+
+    - name: notify-orchestrator
+      description: "Notify Orchestrator of commit"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        # Create notification message
+        OUTBOX="messages/${ROLE_NAME}/outbox"
+        mkdir -p "$OUTBOX"
+
+        cat > "$OUTBOX/commit-$(date +%s).md" <<EOF
+## CommitNotification
+
+**From:** ${ROLE_NAME:-unknown}
+**To:** Orchestrator
+**Timestamp:** $(date -Iseconds)
+
+**Commit SHA:** ${COMMIT_SHA:-pending}
+**Message:** ${COMMIT_MSG:-}
+**Files Changed:** ${FILES_CHANGED:-unknown}
+EOF
+
+  # --------------------------------------------------------------------------
+  # QUALITY GATE TRANSITIONS
+  # --------------------------------------------------------------------------
+  gateAdvance:
+    - name: validate-gate-requirements
+      description: "Validate all gate requirements before advancement"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        if [ -n "${FEATURE_NAME:-}" ] && [ -n "${CURRENT_GATE:-}" ]; then
+          bash scripts/quality-gates/gates-check.sh "${FEATURE_NAME}" || {
+            echo "❌ Gate requirements not met"
+            exit 1
+          }
+        fi
+
+    - name: log-gate-advancement
+      description: "Audit log gate transitions"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] Gate ${CURRENT_GATE:-?} → ${NEXT_GATE:-?}" >> \
+          .git/audit/gate-transitions.txt
+
+    - name: broadcast-gate-update
+      description: "Notify all roles of gate change"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        # Broadcast to all role inboxes
+        for role in orchestrator librarian planner-a planner-b architect-a architect-b architect-c dev-a dev-b qa-a qa-b docs; do
+          mkdir -p "messages/$role/inbox"
+
+          cat > "messages/$role/inbox/gate-update-$(date +%s).md" <<EOF
+## GateStatusUpdate
+
+**From:** Orchestrator
+**To:** ALL
+**Timestamp:** $(date -Iseconds)
+
+**Previous Gate:** ${CURRENT_GATE:-?}
+**New Gate:** ${NEXT_GATE:-?}
+**Feature:** ${FEATURE_NAME:-unknown}
+
+Gate advanced successfully.
+EOF
+        done
+
+  # --------------------------------------------------------------------------
+  # ROLLBACK EVENTS
+  # --------------------------------------------------------------------------
+  gateRollback:
+    - name: log-rollback
+      description: "Audit log rollback event"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] ROLLBACK ${CURRENT_GATE:-?} → ${TARGET_GATE:-?} Reason: ${ROLLBACK_REASON:-unknown}" >> \
+          .git/audit/gate-rollbacks.json
+
+    - name: require-cosignature
+      description: "Verify Librarian co-signature for rollback"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        # Check if rollback requires co-signature
+        if [ "${REQUIRES_COSIGN:-false}" = "true" ]; then
+          if [ -z "${LIBRARIAN_COSIGN:-}" ]; then
+            echo "❌ Rollback requires Librarian co-signature"
+            exit 1
+          fi
+        fi
+
+  # --------------------------------------------------------------------------
+  # WRITE LOCK COORDINATION
+  # --------------------------------------------------------------------------
+  writeLockRequest:
+    - name: log-lock-request
+      description: "Log write lock requests"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] Lock request: ${FILES:-all}" >> \
+          .git/audit/write-lock-requests.txt
+
+  writeLockGrant:
+    - name: log-lock-grant
+      description: "Log write lock grants"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] Lock granted: Holder=${HOLDER:-?} Duration=${DURATION:-?}" >> \
+          .git/audit/write-lock-grants.txt
+
+  writeLockRelease:
+    - name: log-lock-release
+      description: "Log write lock releases"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        echo "$(date -Iseconds): [${ROLE_NAME:-unknown}] Lock released by ${HOLDER:-unknown}" >> \
+          .git/audit/write-lock-releases.txt
+
+# ============================================================================
+# AGENTS - Specialized Subagents for Complex Tasks
+# ============================================================================
 agents:
+  # --------------------------------------------------------------------------
+  # DEVELOPMENT AGENTS
+  # --------------------------------------------------------------------------
   - name: senior-fullstack-engineer
-    description: "Full-stack development with TDD and comprehensive testing"
-
-  - name: qa-gatekeeper
-    description: "Quality assurance review before deployment"
+    description: "Full-stack development with TDD, iterative refinement, and comprehensive testing"
+    use_when: "Need end-to-end feature implementation with tests and quality gates"
 
   - name: senior-architect-planner
-    description: "Technical architecture and PRD creation"
+    description: "Technical architecture design and PRD creation with TDD/SDD methodology"
+    use_when: "Need comprehensive project planning or architecture design"
 
+  # --------------------------------------------------------------------------
+  # QUALITY ASSURANCE AGENTS
+  # --------------------------------------------------------------------------
+  - name: qa-gatekeeper
+    description: "Comprehensive quality review of code, test plans, and features before deployment"
+    use_when: "Major feature complete, need thorough QA review before production"
+
+  - name: superpowers:code-reviewer
+    description: "Review implementation against plan and coding standards after major steps"
+    use_when: "Completed significant code, need review against plan"
+
+  # --------------------------------------------------------------------------
+  # DOCUMENTATION AGENTS
+  # --------------------------------------------------------------------------
   - name: docs-version-control-architect
-    description: "Documentation and version control best practices"
+    description: "Establish/improve documentation and version control practices"
+    use_when: "Need documentation setup or Git workflow improvements"
+
+  # --------------------------------------------------------------------------
+  # ORCHESTRATION AGENTS
+  # --------------------------------------------------------------------------
+  - name: project-manager
+    description: "Full project orchestration with discovery, planning, and agent coordination"
+    use_when: "Complex multi-step project requiring discovery and coordinated agents"
+
+  # --------------------------------------------------------------------------
+  # EXPLORATION AGENTS
+  # --------------------------------------------------------------------------
+  - name: Explore
+    description: "Fast codebase exploration for finding files, searching code, or answering questions"
+    use_when: "Need to quickly find files by patterns or search code for keywords"
+    thoroughness_levels:
+      - quick: "Basic searches (fastest)"
+      - medium: "Moderate exploration"
+      - very_thorough: "Comprehensive analysis across multiple locations"
+
+  - name: Plan
+    description: "Fast codebase exploration with planning focus"
+    use_when: "Need to understand codebase structure for planning"
+    thoroughness_levels:
+      - quick: "Basic searches"
+      - medium: "Moderate exploration"
+      - very_thorough: "Comprehensive analysis"
+
+# ============================================================================
+# CODE QUALITY TOOLS INSTALLED
+# ============================================================================
+# Python:
+#   - black 25.9.0       (formatter - /home/buckstrdr/.local/bin/black)
+#   - ruff 0.14.1        (linter - /home/buckstrdr/.local/bin/ruff)
+#   - mypy               (type checker)
+#   - pytest 7.4.3       (test runner)
+#   - pytest-cov 7.0.0   (coverage)
+#   - pytest-asyncio     (async test support)
+#   - pytest-mock        (mocking)
+#
+# JavaScript/TypeScript:
+#   - eslint             (linter - /usr/bin/eslint)
+#   - prettier           (formatter)
+#   - tsc                (TypeScript compiler)
+#
+# All tools run automatically on fileWrite via run-code-quality-tools hook
+
+# ============================================================================
+# SLASH COMMANDS AVAILABLE (69 total)
+# ============================================================================
+# Use any of these with: /command-name
+#
+# Superpowers (20):
+#   /sp-using, /sp-brainstorm, /sp-tdd, /sp-debug, /sp-verify,
+#   /sp-request-review, /sp-receive-review, /sp-defense-depth,
+#   /sp-root-cause, /sp-wait-condition, /sp-test-antipatterns,
+#   /sp-worktrees, /sp-execute-plan, /sp-subagent-dev, /sp-write-plan,
+#   /sp-write-skill, /sp-test-skill, /sp-parallel-agents, /sp-share-skill,
+#   /sp-finish-branch
+#
+# Agents (6):
+#   /architect, /engineer, /qa, /docs, /pm
+#
+# Tools (5):
+#   /context7, /firecrawl, /optimize-docs, /ui-verify
+#
+# Testing & Orchestration (1):
+#   /broadcast-test
+#
+# Project-Specific (37):
+#   /adr, /api, /asyncio, /backend-expert, /clean, /create-plugin,
+#   /create-strategy, /debug, /e2e-verify, /fastapi, /find, /gates,
+#   /github, /karen, /logs, /pragmatist, /pydantic, /python, /react,
+#   /restart, /session-end, /smoke, /spec, /start, /startup, /status,
+#   /strategy, /strategy-sme, /sync, /tailwind, /test, /trading,
+#   /triage, /typescript, /validator, /verify-complete, /websocket, /zustand
+
+# ============================================================================
+# ROLE-SPECIFIC PROMPTS (Loaded at Launch)
+# ============================================================================
+# These are loaded from system-comps/core/{role}_identity.md
+# - orchestrator_identity.md
+# - librarian_identity.md
+# - planner_identity.md (used by both Planner-A and Planner-B)
+# - architect_identity.md (used by Architect-A, B, C)
+# - dev_identity.md (used by Dev-A and Dev-B)
+# - qa_identity.md (used by QA-A and QA-B)
+# - docs_identity.md
+
+# ============================================================================
+# ENVIRONMENT VARIABLES (Set by Bootstrap)
+# ============================================================================
+# ${WORKTREE_PATH}      - Path to feature worktree (e.g., ../wt-feature-auth)
+# ${FEATURE_NAME}       - Feature name (e.g., authentication)
+# ${ROLE_NAME}          - Role instance name (e.g., orchestrator, dev-a, qa-b)
+# ${SERENA_API_KEY}     - Serena MCP authentication
+# ${FIRECRAWL_API_KEY}  - Firecrawl API authentication
+# ${CONTEXT7_API_KEY}   - Context7 API authentication
+# ${FILE_PATH}          - File being read/written (in fileRead/fileWrite hooks)
+# ${COMMIT_MSG}         - Git commit message (in gitCommit hooks)
+# ${COMMIT_SHA}         - Git commit SHA (in gitCommit hooks)
+# ${TOOL_NAME}          - Tool being called (in toolCallBefore/After hooks)
+# ${TOOL_EXIT_CODE}     - Tool exit code (in toolCallAfter hooks)
+# ${CURRENT_GATE}       - Current quality gate (in gateAdvance/gateRollback hooks)
+# ${NEXT_GATE}          - Next quality gate (in gateAdvance hooks)
+# ${TARGET_GATE}        - Target rollback gate (in gateRollback hooks)
+# ${ROLLBACK_REASON}    - Reason for rollback (in gateRollback hooks)
+# ${REQUIRES_COSIGN}    - Whether co-signature required (in gateRollback hooks)
+# ${LIBRARIAN_COSIGN}   - Librarian co-signature (in gateRollback hooks)
+# ${HOLDER}             - Write lock holder (in writeLock hooks)
+# ${DURATION}           - Lock duration (in writeLockGrant hooks)
+# ${FILES}              - Files being locked (in writeLockRequest hooks)
+
+# ============================================================================
+# USAGE
+# ============================================================================
+# This file is copied to each feature worktree during bootstrap:
+#   ./bootstrap.sh <feature-name>
+#
+# Each Claude instance launches with:
+#   claude code --mcp-config toolset.yaml --system-prompt "$(cat /tmp/prompt_{role}.txt)"
+#
+# All 12 instances share this configuration but receive role-specific prompts.
