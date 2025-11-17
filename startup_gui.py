@@ -579,21 +579,13 @@ class MCPServerGUI:
                 # Get screen geometry for positioning
                 session_name = f"claude-feature-{feature_name}"
 
-                # Terminal 1: Monitor 1 (left) - Orchestrator
-                subprocess.Popen(
-                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-T", f"{feature_name} - Orchestrator", "-geometry", "120x40+0+0",
-                     "-e", "bash", "-c",
-                     f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
-                     f"tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
-                    cwd=self.install_dir
-                )
-                time.sleep(0.3)
+                # Monitor Layout: Monitor 3 (left) - Monitor 2 (middle) - Monitor 1 (right)
+                # Pixel positions: 0-1919 (M3), 1920-3839 (M2), 3840-5759 (M1)
 
-                # Terminal 2: Monitor 3 (right) - Planning
+                # Terminal 1: Monitor 3 (left) - Planning
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-T", f"{feature_name} - Planning", "-geometry", "120x40+3840+0",
+                     "-T", f"{feature_name} - Planning", "-geometry", "120x40+0+0",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w1-planning'; exec bash"],
@@ -601,7 +593,7 @@ class MCPServerGUI:
                 )
                 time.sleep(0.3)
 
-                # Terminal 3: Monitor 2 (middle left) - Arch + Dev-A
+                # Terminal 2: Monitor 2 (middle left) - Architecture
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
                      "-T", f"{feature_name} - Architecture", "-geometry", "80x40+1920+0",
@@ -612,22 +604,33 @@ class MCPServerGUI:
                 )
                 time.sleep(0.3)
 
-                # Terminal 4: Monitor 2 (middle right) - Dev-B + QA + Docs
+                # Terminal 3: Monitor 2 (middle right) - Dev+QA+Docs
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
-                     "-T", f"{feature_name} - Dev+QA+Docs", "-geometry", "80x40+2560+0",
+                     "-T", f"{feature_name} - Dev+QA+Docs", "-geometry", "80x40+2880+0",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
                      f"tmux attach-session -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
+                    cwd=self.install_dir
+                )
+                time.sleep(0.3)
+
+                # Terminal 4: Monitor 1 (right) - Orchestrator
+                subprocess.Popen(
+                    ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-T", f"{feature_name} - Orchestrator", "-geometry", "120x40+3840+0",
+                     "-e", "bash", "-c",
+                     f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
+                     f"tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
                     cwd=self.install_dir
                 )
 
                 messagebox.showinfo(
                     "Launched",
                     f"All 12 instances launched for: {feature_name}\n\n"
-                    "Monitor 1: Orchestrator\n"
-                    "Monitor 2: Arch+Dev-A (left), Dev-B+QA+Docs (right)\n"
-                    "Monitor 3: Planning (Librarian, Planner-A, Planner-B)"
+                    "Monitor 3 (left): Planning (Librarian, Planner-A, Planner-B)\n"
+                    "Monitor 2 (middle): Architecture (left), Dev+QA+Docs (right)\n"
+                    "Monitor 1 (right): Orchestrator"
                 )
 
             except Exception as e:
