@@ -587,14 +587,15 @@ class MCPServerGUI:
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
                      "-geometry", "220x60+0+0",  # Position on Monitor 3
-                     "-maximized",  # Launch maximized
                      "-T", f"{feature_name} - Planning",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
-                     f"unset TMUX; unset TMUX_PANE; sleep 0.5; tmux attach-session -t '{session_name}:w1-planning'; exec bash"],
+                     f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w1-planning'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(1.5)
+                time.sleep(2.0)
+                # Maximize after tmux has rendered
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Planning", "-b", "add,maximized_vert,maximized_horz"], check=False)
 
                 # Terminal 2: Monitor 2 (middle left half) - Architecture
                 subprocess.Popen(
@@ -603,11 +604,11 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Architecture",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Architecture\\007\"'; "
-                     f"unset TMUX; unset TMUX_PANE; sleep 0.5; tmux attach-session -t '{session_name}:w2-arch-dev1'; exec bash"],
+                     f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w2-arch-dev1'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(1.5)
-                # Resize to half-width and maximize vertically
+                time.sleep(2.0)
+                # Resize to half-width and maximize vertically after tmux renders
                 subprocess.run(["wmctrl", "-r", f"{feature_name} - Architecture", "-b", "add,maximized_vert"], check=False)
                 subprocess.run(["wmctrl", "-r", f"{feature_name} - Architecture", "-e", "0,1920,0,960,-1"], check=False)
 
@@ -618,11 +619,11 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Dev+QA+Docs",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
-                     f"unset TMUX; unset TMUX_PANE; sleep 0.5; tmux attach-session -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
+                     f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w3-dev2-qa-docs'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(1.5)
-                # Resize to half-width and maximize vertically
+                time.sleep(2.0)
+                # Resize to half-width and maximize vertically after tmux renders
                 subprocess.run(["wmctrl", "-r", f"{feature_name} - Dev+QA+Docs", "-b", "add,maximized_vert"], check=False)
                 subprocess.run(["wmctrl", "-r", f"{feature_name} - Dev+QA+Docs", "-e", "0,2880,0,960,-1"], check=False)
 
@@ -630,14 +631,15 @@ class MCPServerGUI:
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
                      "-geometry", "220x60+3840+0",  # Position on Monitor 1
-                     "-maximized",  # Launch maximized
                      "-T", f"{feature_name} - Orchestrator",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
-                     f"unset TMUX; unset TMUX_PANE; sleep 0.5; tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
+                     f"unset TMUX; unset TMUX_PANE; tmux attach-session -t '{session_name}:w0-orchestrator'; exec bash"],
                     cwd=self.install_dir
                 )
-                time.sleep(1.5)
+                time.sleep(2.0)
+                # Maximize after tmux has rendered
+                subprocess.run(["wmctrl", "-r", f"{feature_name} - Orchestrator", "-b", "add,maximized_vert,maximized_horz"], check=False)
 
                 messagebox.showinfo(
                     "Launched",
