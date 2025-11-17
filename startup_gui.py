@@ -586,6 +586,7 @@ class MCPServerGUI:
                 # Terminal 1: Monitor 3 (left) - Planning - FULLSCREEN
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-geometry", "220x60",  # Large enough for 3 panes side-by-side
                      "-T", f"{feature_name} - Planning",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
@@ -601,6 +602,7 @@ class MCPServerGUI:
                 # Terminal 2: Monitor 2 (middle left half) - Architecture
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-geometry", "110x60",  # Large enough for 2x2 grid of panes
                      "-T", f"{feature_name} - Architecture",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Architecture\\007\"'; "
@@ -617,6 +619,7 @@ class MCPServerGUI:
                 # Terminal 3: Monitor 2 (middle right half) - Dev+QA+Docs
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-geometry", "110x60",  # Large enough for 2x2 grid of panes
                      "-T", f"{feature_name} - Dev+QA+Docs",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
@@ -633,6 +636,7 @@ class MCPServerGUI:
                 # Terminal 4: Monitor 1 (right) - Orchestrator - FULLSCREEN
                 subprocess.Popen(
                     ["xterm", "-xrm", "XTerm.vt100.allowTitleOps: false",
+                     "-geometry", "220x60",  # Large fullscreen terminal
                      "-T", f"{feature_name} - Orchestrator",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Orchestrator\\007\"'; "
