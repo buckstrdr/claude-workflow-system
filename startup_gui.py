@@ -32,6 +32,7 @@ class MCPServerGUI:
             {"name": "Playwright MCP", "port": 3006, "desc": "Browser Automation"},
             {"name": "Puppeteer MCP", "port": 3007, "desc": "Headless Browser"},
             {"name": "Context7 MCP", "port": 3008, "desc": "Documentation Search"},
+            {"name": "Hugging Face MCP", "port": 3009, "desc": "AI Model Discovery"},
         ]
 
         # Status tracking
@@ -472,6 +473,23 @@ class MCPServerGUI:
             dialog.destroy()
 
             try:
+                # Check if session already exists and auto-cleanup
+                session_name = f"claude-feature-{feature_name}"
+                check_session = subprocess.run(
+                    ["tmux", "has-session", "-t", session_name],
+                    capture_output=True
+                )
+
+                if check_session.returncode == 0:
+                    # Session exists - automatically clean up
+                    self.log_message(f"Cleaning up existing session: {session_name}")
+                    subprocess.run(["tmux", "kill-session", "-t", session_name], capture_output=True)
+                    subprocess.run(["git", "worktree", "remove", "--force", f"../wt-feature-{feature_name}"],
+                                 capture_output=True, cwd=self.install_dir)
+                    subprocess.run(["git", "branch", "-D", f"feature/{feature_name}"],
+                                 capture_output=True, cwd=self.install_dir)
+                    self.log_message(f"Old session cleaned up")
+
                 bootstrap_path = os.path.join(self.install_dir, "bootstrap.sh")
 
                 # Launch bootstrap in new terminal
