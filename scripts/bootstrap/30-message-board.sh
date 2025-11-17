@@ -12,7 +12,9 @@ if [ -d "$WORKTREE_PATH/messages" ]; then
     ./scripts/messaging/cleanup_old_messages.sh "$WORKTREE_PATH"
 fi
 
-# Initialize message board structure
-./scripts/init-message-board.sh
+# Initialize message board structure in the worktree
+cd "$WORKTREE_PATH"
+../claude-workflow-system/scripts/init-message-board.sh
+cd - > /dev/null
 
 echo "✅ Message board initialized"
