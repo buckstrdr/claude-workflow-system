@@ -114,12 +114,13 @@ echo ""
 
 if [ "$LAUNCH_MODE" = "placeholder" ]; then
     echo "⚙️ To manually launch Claude Code in each pane:"
-    echo "   1. Attach: tmux attach-session -t $SESSION_NAME"
+    echo "   1. Attach to any session: tmux attach-session -t ${BASE_NAME}-orchestrator"
     echo "   2. Navigate panes: Ctrl-b + arrow keys"
     echo "   3. Run in each pane: claude code --mcp-config .toolset.yaml"
     echo ""
 fi
 
-echo "To attach to session: tmux attach-session -t $SESSION_NAME"
+echo "To attach to orchestrator: tmux attach-session -t ${BASE_NAME}-orchestrator"
+echo "To attach to planning: tmux attach-session -t ${BASE_NAME}-planning"
 echo "To detach from session: Press Ctrl-b, then d"
 echo ""
