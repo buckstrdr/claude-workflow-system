@@ -489,16 +489,21 @@ class MCPServerGUI:
                                  capture_output=True, cwd=self.install_dir)
 
                 # Run bootstrap script first (creates tmux session)
+                # Source .env and run bootstrap with proper shell environment
+                bootstrap_cmd = f"cd {self.install_dir} && source .env 2>/dev/null; ./bootstrap.sh {feature_name}"
                 bootstrap_result = subprocess.run(
-                    ["bash", "-c", f"cd {self.install_dir} && ./bootstrap.sh {feature_name}"],
+                    ["bash", "-c", bootstrap_cmd],
                     cwd=self.install_dir,
                     capture_output=True,
-                    text=True
+                    text=True,
+                    env={**os.environ, "PATH": os.environ.get("PATH", "") + ":/usr/local/bin:/usr/bin"}
                 )
 
                 if bootstrap_result.returncode != 0:
-                    messagebox.showerror("Bootstrap Failed",
-                        f"Bootstrap script failed:\n{bootstrap_result.stderr}")
+                    error_msg = f"Bootstrap script failed:\n\n"
+                    error_msg += f"STDOUT:\n{bootstrap_result.stdout}\n\n"
+                    error_msg += f"STDERR:\n{bootstrap_result.stderr}"
+                    messagebox.showerror("Bootstrap Failed", error_msg)
                     return
 
                 # Now launch 4 terminals attached to different windows
