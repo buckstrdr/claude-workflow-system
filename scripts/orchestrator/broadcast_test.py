@@ -132,15 +132,14 @@ test_id: {test_id}
 
 def send_broadcast(message_board: Path, test_id: str, timestamp: str) -> int:
     """
-    Send broadcast message to all roles and trigger them via tmux.
+    Send broadcast message to all roles.
+
+    Background inbox watchers will detect and process messages automatically.
 
     Returns:
-        Number of messages successfully sent and triggered
+        Number of messages successfully sent
     """
-    import subprocess
-
     sent_count = 0
-    feature_name = os.getenv("FEATURE_NAME", "unknown")
 
     for role in ALL_ROLES:
         inbox_path = message_board / role / "inbox"
@@ -154,82 +153,12 @@ def send_broadcast(message_board: Path, test_id: str, timestamp: str) -> int:
 
         try:
             message_file.write_text(message_content)
-
-            # Trigger the receiving instance via tmux
-            trigger_role_instance(role, feature_name)
-
             sent_count += 1
             print(f"  ✓ Sent to {role}")
         except Exception as e:
             print(f"  ✗ Failed to send to {role}: {e}", file=sys.stderr)
 
     return sent_count
-
-
-def trigger_role_instance(role: str, feature_name: str):
-    """
-    Trigger a Claude instance to check its inbox by sending a prompt via tmux.
-
-    Args:
-        role: Role name (librarian, planner, architect, dev-a, etc.)
-        feature_name: Feature name for tmux session lookup
-    """
-    import subprocess
-
-    # Map role to tmux session
-    session_map = {
-        "librarian": f"claude-{feature_name}-planning",
-        "planner": f"claude-{feature_name}-planning",
-        "architect": f"claude-{feature_name}-architecture",
-        "dev-a": f"claude-{feature_name}-architecture",
-        "dev-b": f"claude-{feature_name}-dev-qa-docs",
-        "qa-a": f"claude-{feature_name}-dev-qa-docs",
-        "qa-b": f"claude-{feature_name}-dev-qa-docs",
-        "docs": f"claude-{feature_name}-dev-qa-docs",
-    }
-
-    # Map role to pane within session
-    pane_map = {
-        "librarian": 0,
-        "planner": 1,
-        "architect": 0,
-        "dev-a": 3,
-        "dev-b": 0,
-        "qa-a": 1,
-        "qa-b": 2,
-        "docs": 3,
-    }
-
-    session = session_map.get(role)
-    pane = pane_map.get(role, 0)
-
-    if not session:
-        return  # Unknown role, skip trigger
-
-    # Check if session exists
-    try:
-        subprocess.run(
-            ["tmux", "has-session", "-t", session],
-            check=True,
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError:
-        # Session doesn't exist, skip trigger
-        return
-
-    # Send prompt to Claude instance to trigger inbox check
-    try:
-        subprocess.run(
-            [
-                "tmux", "send-keys", "-t", f"{session}.{pane}",
-                "Check inbox for new messages", "C-m"
-            ],
-            check=True,
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError:
-        # Failed to send keys, but message is still in inbox
-        pass
 
 
 def parse_response(response_file: Path) -> Optional[Dict[str, str]]:
