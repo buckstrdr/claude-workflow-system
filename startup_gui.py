@@ -488,19 +488,60 @@ class MCPServerGUI:
                     subprocess.run(["git", "branch", "-D", f"feature/{feature_name}"],
                                  capture_output=True, cwd=self.install_dir)
 
-                bootstrap_path = os.path.join(self.install_dir, "bootstrap.sh")
+                # Run bootstrap script first (creates tmux session)
+                bootstrap_result = subprocess.run(
+                    ["bash", "-c", f"cd {self.install_dir} && ./bootstrap.sh {feature_name}"],
+                    cwd=self.install_dir,
+                    capture_output=True,
+                    text=True
+                )
 
-                # Launch bootstrap in new terminal
+                if bootstrap_result.returncode != 0:
+                    messagebox.showerror("Bootstrap Failed",
+                        f"Bootstrap script failed:\n{bootstrap_result.stderr}")
+                    return
+
+                # Now launch 4 terminals attached to different windows
+                # Get screen geometry for positioning
+                session_name = f"claude-feature-{feature_name}"
+
+                # Terminal 1: Monitor 1 (left) - Orchestrator
                 subprocess.Popen(
-                    ["gnome-terminal", "--", "bash", "-c",
-                     f"cd {self.install_dir} && ./bootstrap.sh {feature_name}; exec bash"],
+                    ["gnome-terminal", "--geometry=120x40+0+0", "--", "bash", "-c",
+                     f"tmux attach-session -t {session_name}:w0-orchestrator; exec bash"],
+                    cwd=self.install_dir
+                )
+                time.sleep(0.3)
+
+                # Terminal 2: Monitor 3 (right) - Planning
+                subprocess.Popen(
+                    ["gnome-terminal", "--geometry=120x40+3840+0", "--", "bash", "-c",
+                     f"tmux attach-session -t {session_name}:w1-planning; exec bash"],
+                    cwd=self.install_dir
+                )
+                time.sleep(0.3)
+
+                # Terminal 3: Monitor 2 (middle left) - Arch + Dev-A
+                subprocess.Popen(
+                    ["gnome-terminal", "--geometry=80x40+1920+0", "--", "bash", "-c",
+                     f"tmux attach-session -t {session_name}:w2-arch-dev1; exec bash"],
+                    cwd=self.install_dir
+                )
+                time.sleep(0.3)
+
+                # Terminal 4: Monitor 2 (middle right) - Dev-B + QA + Docs
+                subprocess.Popen(
+                    ["gnome-terminal", "--geometry=80x40+2560+0", "--", "bash", "-c",
+                     f"tmux attach-session -t {session_name}:w3-dev2-qa-docs; exec bash"],
                     cwd=self.install_dir
                 )
 
                 messagebox.showinfo(
                     "Launched",
-                    f"Orchestrator launched for feature: {feature_name}\n\n"
-                    "Check the new terminal window for the tmux session."
+                    f"All 12 instances launched for: {feature_name}\n\n"
+                    "Monitor 1: Orchestrator\n"
+                    "Monitor 2: Arch+Dev-A (left), Dev-B+QA+Docs (right)\n"
+                    "Monitor 3: Planning (Librarian, Planner-A, Planner-B)"
                 )
 
             except Exception as e:
