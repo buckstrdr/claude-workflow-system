@@ -51,5 +51,9 @@ for script in scripts/bootstrap/*.sh; do
 done
 
 echo "✅ Bootstrap complete!"
-tmux attach-session -t "claude-feature-$FEATURE_NAME:w0-orchestrator" 2>/dev/null || \
-tmux attach-session -t "claude-feature-$FEATURE_NAME"
+
+# Only auto-attach if running interactively (not from GUI)
+if [ -t 1 ]; then
+    tmux attach-session -t "claude-feature-$FEATURE_NAME:w0-orchestrator" 2>/dev/null || \
+    tmux attach-session -t "claude-feature-$FEATURE_NAME"
+fi
