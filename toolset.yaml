@@ -355,6 +355,19 @@ hooks:
           fi
         fi
 
+    - name: respond-to-broadcasts
+      description: "Check for and respond to broadcast test requests"
+      command: |
+        #!/bin/bash
+        set -euo pipefail
+
+        # Only run for non-orchestrator roles
+        if [ "${ROLE_NAME:-}" != "orchestrator" ]; then
+          if [ -x scripts/roles/handle_broadcast_test.py ]; then
+            python3 scripts/roles/handle_broadcast_test.py --role "${ROLE_NAME}" 2>/dev/null || true
+          fi
+        fi
+
   # --------------------------------------------------------------------------
   # FILE OPERATIONS
   # --------------------------------------------------------------------------
