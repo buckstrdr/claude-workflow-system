@@ -145,8 +145,8 @@ def trigger_claude_interactive(role: str, message: Dict, feature: str, worktree:
         send_cmd = ["tmux", "send-keys", "-t", target, prompt]
         subprocess.run(send_cmd, capture_output=True, timeout=5)
 
-        # Submit with Enter
-        submit_cmd = ["tmux", "send-keys", "-t", target, "Enter"]
+        # Submit with Enter (C-m is the tmux key for Enter)
+        submit_cmd = ["tmux", "send-keys", "-t", target, "C-m"]
         subprocess.run(submit_cmd, capture_output=True, timeout=5)
 
         return True
