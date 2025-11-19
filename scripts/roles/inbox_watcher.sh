@@ -1,39 +1,35 @@
 #!/bin/bash
-# Background inbox watcher - checks for new messages every 3 seconds
+# Background inbox watcher - monitors MCP message store for ALL messages
 
 set -euo pipefail
 
 ROLE_NAME="${1:-}"
 WORKTREE_PATH="${2:-.}"
+FEATURE_NAME="${FEATURE_NAME:-unknown}"
 
 if [ -z "$ROLE_NAME" ]; then
     echo "Usage: $0 <role_name> [worktree_path]"
     exit 1
 fi
 
-INBOX="$WORKTREE_PATH/messages/$ROLE_NAME/inbox"
-
-# Create inbox if it doesn't exist
-mkdir -p "$INBOX"
-
 echo "📬 Inbox watcher started for role: $ROLE_NAME"
-echo "   Watching: $INBOX"
-echo "   Checking every 3 seconds..."
+echo "   Feature: $FEATURE_NAME"
+echo "   MCP Store: ~/.claude-messaging/messages.json"
+echo "   Checking every 3 seconds for ANY messages..."
 echo ""
 
 # Track last check time
 LAST_CHECK=$(date +%s)
 
 while true; do
-    # Check for broadcast test messages
-    if [ -x "$WORKTREE_PATH/scripts/roles/handle_broadcast_test.py" ]; then
-        python3 "$WORKTREE_PATH/scripts/roles/handle_broadcast_test.py" \
+    # Use generic message handler for ALL message types
+    # This replaces the specific handlers (broadcast_test, task_assignment)
+    if [ -x "$WORKTREE_PATH/scripts/roles/handle_messages.py" ]; then
+        python3 "$WORKTREE_PATH/scripts/roles/handle_messages.py" \
             --role "$ROLE_NAME" \
+            --feature "$FEATURE_NAME" \
             --worktree "$WORKTREE_PATH" 2>/dev/null || true
     fi
-
-    # Check for other message types in the future
-    # (add more message handlers here)
 
     # Update last check time
     LAST_CHECK=$(date +%s)

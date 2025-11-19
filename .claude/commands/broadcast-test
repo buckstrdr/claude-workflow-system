@@ -1,0 +1,46 @@
+Run the broadcast communication test to verify all 12 Claude instances (including orchestrator) can communicate via the MCP message store and inbox watchers are functioning.
+
+Execute: python3 scripts/orchestrator/broadcast_test.py --timeout 10
+
+This will:
+1. Send broadcast message to all 11 roles via MCP message store (using direct_broadcast.py)
+2. Wait 10 seconds for inbox watchers to detect messages and trigger autonomous responses
+3. Collect responses from each role's MCP inbox
+4. Display formatted results table showing:
+   - Response rate (X/11 roles, excluding sender)
+   - Status of each role
+   - Response times
+   - Overall system health
+5. Mark test response messages as read automatically
+
+Expected output when healthy:
+✅ Responses received: 11/11 (100%)
+✅ Message passing infrastructure (MCP Store): HEALTHY
+✅ Inbox watchers: OPERATIONAL (all 12 roles)
+✅ Autonomous messaging: WORKING
+
+## Autonomous Messaging System
+
+The system monitors for **ANY** messages (not just broadcast tests):
+
+**Message Types Handled:**
+- **Broadcast tests** → Autonomous response
+- **Status requests** → Autonomous response
+- **Task assignments** → Trigger Claude interactively
+- **Code/spec reviews** → Trigger Claude interactively
+- **Questions** → Trigger Claude interactively
+- **Notifications** → Mark read (no action)
+
+**How It Works:**
+1. Inbox watcher (scripts/roles/inbox_watcher.sh) runs every 3 seconds
+2. Generic handler (scripts/roles/handle_messages.py) classifies message intent
+3. Simple messages get autonomous responses (no human intervention)
+4. Complex messages trigger Claude interactively via tmux send-keys + Enter
+
+Use this before starting feature work to verify:
+- All 12 instances are operational
+- MCP message store is working
+- Inbox watchers are detecting ALL messages (not just broadcast tests)
+- Autonomous message handling is functioning for simple messages
+- Interactive triggering works for complex messages
+- All roles can respond without manual intervention
