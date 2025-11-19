@@ -23,9 +23,44 @@ launch_instance() {
     local role="$3"
     local role_name="$4"
 
+    # Map role name to message board directory name FIRST (needed for prompt)
+    local msg_role="$role"
+    case "$role_name" in
+        "Orchestrator") msg_role="orchestrator" ;;
+        "Planner-A") msg_role="planner-a" ;;
+        "Planner-B") msg_role="planner-b" ;;
+        "Architect-A") msg_role="architect-a" ;;
+        "Architect-B") msg_role="architect-b" ;;
+        "Architect-C") msg_role="architect-c" ;;
+        "Dev-A") msg_role="dev-a" ;;
+        "Dev-B") msg_role="dev-b" ;;
+        "QA-A") msg_role="qa-a" ;;
+        "QA-B") msg_role="qa-b" ;;
+        "Docs") msg_role="docs" ;;
+        "Librarian") msg_role="librarian" ;;
+    esac
+
     # Build system prompt and save to temp file
-    local prompt_file="/tmp/prompt_${role}.txt"
+    local prompt_file="/tmp/prompt_${msg_role}.txt"
     build_prompt "$role" > "$prompt_file"
+
+    # Append instance-specific identity to prompt
+    # This ensures each instance knows their specific identity (A, B, C) and inbox
+    cat >> "$prompt_file" <<EOF
+
+---
+
+# Instance Identity
+
+**Role:** $role_name
+**Inbox:** $msg_role
+**MCP Message Store:** Use \`check_inbox\` MCP tool with role="$msg_role" to read messages
+**Send Messages:** Use \`send_message\` MCP tool with from_role="$msg_role"
+
+When other instances send messages to you, they will address them to: **$msg_role**
+
+You are part of a 12-instance multiagent system. Each instance has a unique identity and inbox.
+EOF
 
     # Source .env for API keys (SERENA_API_KEY, FIRECRAWL_API_KEY, CONTEXT7_API_KEY)
     # All instances connect to vMCP aggregation layer (http://localhost:10985)
@@ -39,22 +74,6 @@ launch_instance() {
 
     # Start inbox watcher in background for ALL roles (including orchestrator)
     if true; then
-        # Map role name to message board directory name
-        local msg_role="$role"
-        case "$role_name" in
-            "Orchestrator") msg_role="orchestrator" ;;
-            "Planner-A") msg_role="planner-a" ;;
-            "Planner-B") msg_role="planner-b" ;;
-            "Architect-A") msg_role="architect-a" ;;
-            "Architect-B") msg_role="architect-b" ;;
-            "Architect-C") msg_role="architect-c" ;;
-            "Dev-A") msg_role="dev-a" ;;
-            "Dev-B") msg_role="dev-b" ;;
-            "QA-A") msg_role="qa-a" ;;
-            "QA-B") msg_role="qa-b" ;;
-            "Docs") msg_role="docs" ;;
-            "Librarian") msg_role="librarian" ;;
-        esac
 
         # Start inbox watcher as independent background process
         # Does NOT use tmux send-keys to avoid blocking Claude's input
