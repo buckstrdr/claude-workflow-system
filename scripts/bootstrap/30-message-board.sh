@@ -22,6 +22,14 @@ if [ -f "$MCP_MESSAGES" ]; then
     echo "✓ MCP messages cleared"
 fi
 
+# Clear MCP database cache (SQLite) if it exists
+MCP_DB="../claude-workflow-system/mcp.db"
+if [ -f "$MCP_DB" ]; then
+    echo "Clearing MCP database cache..."
+    rm -f "$MCP_DB" "$MCP_DB-shm" "$MCP_DB-wal"
+    echo "✓ MCP database cache cleared"
+fi
+
 # Initialize fresh message board structure in the worktree
 cd "$WORKTREE_PATH"
 ../claude-workflow-system/scripts/init-message-board.sh
