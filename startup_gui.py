@@ -33,6 +33,7 @@ class MCPServerGUI:
             {"name": "Puppeteer MCP", "port": 3007, "desc": "Headless Browser"},
             {"name": "Context7 MCP", "port": 3008, "desc": "Documentation Search"},
             {"name": "Hugging Face MCP", "port": 3009, "desc": "AI Model Discovery"},
+            {"name": "Messaging MCP", "port": 3010, "desc": "Agent-to-Agent Communication"},
         ]
 
         # Status tracking
@@ -468,10 +469,10 @@ class MCPServerGUI:
 
             if result.returncode == 0:
                 sessions = [line.split(":")[0] for line in result.stdout.splitlines()
-                           if line.startswith("claude-feature-")]
+                           if line.startswith("claude-") and not line.startswith("claude-code")]
 
                 if not sessions:
-                    messagebox.showinfo("Cleanup", "No claude-feature sessions found")
+                    messagebox.showinfo("Cleanup", "No claude sessions found")
                     return
 
                 # Kill all sessions
@@ -480,8 +481,15 @@ class MCPServerGUI:
                 subprocess.run(["bash", "-c", cleanup_script])
 
                 # Clean up worktrees and branches
+                # Extract unique feature names from session names (claude-{feature}-{type})
+                feature_names = set()
                 for session in sessions:
-                    feature_name = session.replace("claude-feature-", "")
+                    if session.startswith("claude-"):
+                        parts = session.replace("claude-", "").split("-")
+                        if parts:
+                            feature_names.add(parts[0])
+
+                for feature_name in feature_names:
                     subprocess.run(["git", "worktree", "remove", "--force", f"../wt-feature-{feature_name}"],
                                  capture_output=True, cwd=self.install_dir, check=False)
                     subprocess.run(["git", "branch", "-D", f"feature/{feature_name}"],
@@ -536,7 +544,7 @@ class MCPServerGUI:
 
                 if result.returncode == 0:
                     sessions = [line.split(":")[0] for line in result.stdout.splitlines()
-                               if line.startswith("claude-feature-")]
+                               if line.startswith("claude-") and not line.startswith("claude-code")]
 
                     if sessions:
                         # Kill all existing sessions
@@ -545,8 +553,15 @@ class MCPServerGUI:
                         subprocess.run(["bash", "-c", cleanup_script])
 
                         # Clean up worktrees and branches
+                        # Extract unique feature names from session names (claude-{feature}-{type})
+                        feature_names = set()
                         for session in sessions:
-                            fname = session.replace("claude-feature-", "")
+                            if session.startswith("claude-"):
+                                parts = session.replace("claude-", "").split("-")
+                                if parts:
+                                    feature_names.add(parts[0])
+
+                        for fname in feature_names:
                             subprocess.run(["git", "worktree", "remove", "--force", f"../wt-feature-{fname}"],
                                          capture_output=True, cwd=self.install_dir, check=False)
                             subprocess.run(["git", "branch", "-D", f"feature/{fname}"],
@@ -591,7 +606,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Planning",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Planning\\007\"'; "
-                     f"tmux attach-session -t '{base_name}-planning'; exec bash"],
+                     f"tmux attach-session -r -t '{base_name}-planning'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(1.5)
@@ -606,7 +621,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Architecture",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Architecture\\007\"'; "
-                     f"tmux attach-session -t '{base_name}-architecture'; exec bash"],
+                     f"tmux attach-session -r -t '{base_name}-architecture'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(1.5)
@@ -622,7 +637,7 @@ class MCPServerGUI:
                      "-T", f"{feature_name} - Dev+QA+Docs",
                      "-e", "bash", "-c",
                      f"PROMPT_COMMAND='printf \"\\033]0;{feature_name} - Dev+QA+Docs\\007\"'; "
-                     f"tmux attach-session -t '{base_name}-dev-qa-docs'; exec bash"],
+                     f"tmux attach-session -r -t '{base_name}-dev-qa-docs'; exec bash"],
                     cwd=self.install_dir
                 )
                 time.sleep(1.5)
