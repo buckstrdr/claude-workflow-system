@@ -1,33 +1,36 @@
 #!/usr/bin/env python3
 """
-Broadcast Test Script
+Broadcast Test Script - MCP Store Version
 
-Sends broadcast test message to all 12 Claude role instances and collects responses.
+Sends broadcast test message to all 11 Claude role instances via MCP message store
+and collects responses automatically via inbox watchers.
 
 Usage:
-    python broadcast_test.py [--timeout SECONDS] [--worktree PATH]
+    python broadcast_test.py [--timeout SECONDS]
 
-Default timeout: 5 seconds
-Default worktree: Current directory's parent's wt-feature-* directory
+Default timeout: 10 seconds (to allow inbox watchers time to process)
 """
 
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 
-# All message board roles (excluding orchestrator)
-# Note: Planner-A/B share "planner" directory, Architect-A/B/C share "architect"
+# All roles (including orchestrator - 12 total)
 ALL_ROLES = [
+    "orchestrator",
     "librarian",
-    "planner",
-    "architect",
+    "planner-a",
+    "planner-b",
+    "architect-a",
+    "architect-b",
+    "architect-c",
     "dev-a",
     "dev-b",
     "qa-a",
@@ -41,351 +44,288 @@ def get_timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def get_worktree_path() -> Path:
-    """Get worktree path from environment or current directory."""
-    # Check environment variable first
-    if worktree_env := os.getenv("WORKTREE_PATH"):
-        return Path(worktree_env)
-
-    # Check if we're in a worktree
-    cwd = Path.cwd()
-    if cwd.name.startswith("wt-feature-"):
-        return cwd
-
-    # Check parent directory for worktrees
-    parent = cwd.parent
-    worktrees = list(parent.glob("wt-feature-*"))
-    if worktrees:
-        # Use the most recently modified worktree
-        return max(worktrees, key=lambda p: p.stat().st_mtime)
-
-    # Fallback to current directory
-    return cwd
+def get_project_root() -> Path:
+    """Get project root directory."""
+    # Assume this script is in scripts/orchestrator/
+    return Path(__file__).parent.parent.parent
 
 
-def get_message_board_path(worktree: Path) -> Path:
-    """Get message board base path."""
-    return worktree / "messages"
+def get_mcp_messages_file() -> Path:
+    """Get path to MCP message store."""
+    return Path.home() / ".claude-messaging" / "messages.json"
 
 
-def count_messages(role_path: Path, box: str) -> int:
-    """Count messages in inbox or outbox."""
-    box_path = role_path / box
-    if not box_path.exists():
+def send_broadcast_via_mcp(test_id: str, timestamp: str, from_role: str = "orchestrator") -> int:
+    """
+    Send broadcast message to all roles via MCP store using direct_broadcast.py.
+
+    Returns:
+        Number of messages successfully sent
+    """
+    project_root = get_project_root()
+    broadcast_script = project_root / "scripts" / "messaging" / "direct_broadcast.py"
+
+    if not broadcast_script.exists():
+        print(f"❌ direct_broadcast.py not found at {broadcast_script}", file=sys.stderr)
         return 0
-    return len(list(box_path.glob("*.md")))
 
+    # Create broadcast message content
+    message_content = f"""# Broadcast Test Request
 
-def create_broadcast_message(role: str, test_id: str, timestamp: str) -> str:
-    """Create broadcast test message content."""
-    return f"""---
-type: broadcast-test
-from: orchestrator
-to: {role}
-timestamp: {timestamp}
-test_id: {test_id}
----
-
-# Broadcast Test Request
-
-This is an automated broadcast test of the message passing infrastructure.
+This is an automated broadcast test of the message passing infrastructure via MCP store.
 
 **Test ID:** `{test_id}`
 **Timestamp:** {timestamp}
 
 ## Action Required
 
-Please respond immediately with your role identity and status.
+Please respond by sending a message back to {from_role} with:
+1. Your role identity and status
+2. Test ID confirmation
 
-**Response Instructions:**
+The inbox watcher will automatically detect this message and should trigger your response.
 
-1. Create response file: `messages/orchestrator/inbox/broadcast-response-{role}-{test_id}.md`
-2. Use the template below:
-
-```markdown
----
-type: broadcast-response
-from: {role}
-to: orchestrator
-timestamp: {{current-timestamp}}
-test_id: {test_id}
----
-
-# Broadcast Test Response
-
-**Role:** {role}
-**Quality Gate:** {{your-current-gate-stage}}
-**Inbox Count:** {{your-inbox-count}}
-**Outbox Count:** {{your-outbox-count}}
-**Status:** Operational
-**Received At:** {{timestamp-when-you-saw-this}}
-**Responding At:** {{current-timestamp}}
-```
-
-**Expected Response Time:** Within 5 seconds
-
----
-
-**End of Broadcast Test Request**
+**Expected Response Time:** Within 10 seconds
 """
 
-
-def send_broadcast(message_board: Path, test_id: str, timestamp: str) -> int:
-    """
-    Send broadcast message to all roles.
-
-    Background inbox watchers will detect and process messages automatically.
-
-    Returns:
-        Number of messages successfully sent
-    """
     sent_count = 0
+    # Exclude sender from recipients (don't send to yourself)
+    recipients = [r for r in ALL_ROLES if r != from_role]
 
-    for role in ALL_ROLES:
-        inbox_path = message_board / role / "inbox"
+    print(f"Sending broadcast to {len(recipients)} roles via MCP store...")
 
-        # Create inbox if it doesn't exist
-        inbox_path.mkdir(parents=True, exist_ok=True)
-
-        # Create message file
-        message_file = inbox_path / f"broadcast-test-{test_id}.md"
-        message_content = create_broadcast_message(role, test_id, timestamp)
-
+    for role in recipients:
         try:
-            message_file.write_text(message_content)
-            sent_count += 1
-            print(f"  ✓ Sent to {role}")
+            result = subprocess.run(
+                [
+                    "python3",
+                    str(broadcast_script),
+                    "send",
+                    from_role,
+                    role,
+                    f"Broadcast Test - {test_id}",
+                    message_content
+                ],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+
+            if result.returncode == 0:
+                sent_count += 1
+                print(f"  ✓ Sent to {role}")
+            else:
+                print(f"  ✗ Failed to send to {role}: {result.stderr}", file=sys.stderr)
+
         except Exception as e:
             print(f"  ✗ Failed to send to {role}: {e}", file=sys.stderr)
 
     return sent_count
 
 
-def parse_response(response_file: Path) -> Optional[Dict[str, str]]:
+def collect_responses_from_mcp(test_id: str, timeout: int, collector_role: str = "orchestrator") -> Dict[str, Dict]:
     """
-    Parse broadcast response message.
-
-    Returns:
-        Dict with role, gate, inbox_count, outbox_count, status
-        None if parsing fails
-    """
-    try:
-        content = response_file.read_text()
-
-        # Simple parsing - look for key lines
-        role = None
-        gate = None
-        inbox_count = None
-        outbox_count = None
-        status = None
-
-        for line in content.split("\n"):
-            line = line.strip()
-            if line.startswith("**Role:**"):
-                role = line.split("**Role:**")[1].strip()
-            elif line.startswith("**Quality Gate:**"):
-                gate = line.split("**Quality Gate:**")[1].strip()
-            elif line.startswith("**Inbox Count:**"):
-                inbox_count = line.split("**Inbox Count:**")[1].strip()
-            elif line.startswith("**Outbox Count:**"):
-                outbox_count = line.split("**Outbox Count:**")[1].strip()
-            elif line.startswith("**Status:**"):
-                status = line.split("**Status:**")[1].strip()
-
-        if role:
-            return {
-                "role": role,
-                "gate": gate or "UNKNOWN",
-                "inbox_count": inbox_count or "?",
-                "outbox_count": outbox_count or "?",
-                "status": status or "Unknown",
-            }
-
-        return None
-    except Exception as e:
-        print(f"  ⚠️  Failed to parse {response_file.name}: {e}", file=sys.stderr)
-        return None
-
-
-def collect_responses(
-    message_board: Path, test_id: str, timeout: int
-) -> Dict[str, Dict[str, str]]:
-    """
-    Collect responses from all roles.
+    Collect responses from collector's inbox in MCP store.
 
     Returns:
         Dict mapping role name to response data
     """
     responses = {}
-    inbox_path = message_board / "orchestrator" / "inbox"
+    messages_file = get_mcp_messages_file()
 
-    # Create inbox if it doesn't exist
-    inbox_path.mkdir(parents=True, exist_ok=True)
+    if not messages_file.exists():
+        print(f"❌ MCP message store not found at {messages_file}", file=sys.stderr)
+        return responses
 
-    print(f"\nWaiting {timeout} seconds for responses...")
+    print(f"\nWaiting {timeout} seconds for responses from inbox watchers...")
 
     start_time = time.time()
     last_count = 0
 
     while time.time() - start_time < timeout:
-        # Check for new response files
-        response_files = list(inbox_path.glob(f"broadcast-response-*-{test_id}.md"))
+        try:
+            with open(messages_file, 'r') as f:
+                all_messages = json.load(f)
 
-        if len(response_files) > last_count:
-            # New responses arrived
-            for response_file in response_files:
-                if response_file.name not in [r["file"] for r in responses.values() if "file" in r]:
-                    response_data = parse_response(response_file)
-                    if response_data:
-                        role = response_data["role"]
-                        responses[role] = {**response_data, "file": response_file.name}
-                        print(f"  ✓ Response from {role}")
+            # Get collector's inbox
+            collector_inbox = all_messages.get(collector_role, [])
 
-            last_count = len(response_files)
+            # Filter for responses to this test
+            for msg in collector_inbox:
+                subject = msg.get('subject', '')
+                from_role = msg.get('from_role', '')
 
-            # Check if we got all responses
-            if len(responses) >= len(ALL_ROLES):
-                print(f"\n✅ All {len(ALL_ROLES)} responses received!")
+                # Check if this is a broadcast test response
+                if test_id in subject and from_role in ALL_ROLES and from_role != collector_role:
+                    if from_role not in responses:
+                        responses[from_role] = {
+                            "role": from_role,
+                            "message_id": msg.get('id'),
+                            "subject": subject,
+                            "timestamp": msg.get('timestamp'),
+                            "status": "Operational"
+                        }
+                        print(f"  ✓ Response from {from_role}")
+
+            # Check if we got all expected responses (ALL_ROLES minus the collector)
+            expected_count = len(ALL_ROLES) - 1
+            if len(responses) >= expected_count:
+                print(f"\n✅ All {expected_count} responses received!")
                 break
 
-        time.sleep(0.5)
+            # Progress indicator
+            if len(responses) > last_count:
+                last_count = len(responses)
+
+        except Exception as e:
+            print(f"  ⚠️  Error reading MCP store: {e}", file=sys.stderr)
+
+        time.sleep(1)
 
     return responses
 
 
-def display_results(
-    responses: Dict[str, Dict[str, str]], test_id: str, timestamp: str
-):
+def display_results(responses: Dict[str, Dict], test_id: str, timestamp: str, collector_role: str = "orchestrator"):
     """Display formatted results table."""
-    total_roles = len(ALL_ROLES)
+    # Expected responses = ALL_ROLES minus the collector
+    expected_count = len(ALL_ROLES) - 1
     received_count = len(responses)
-    percentage = (received_count / total_roles * 100) if total_roles > 0 else 0
+    percentage = (received_count / expected_count * 100) if expected_count > 0 else 0
 
     print("\n" + "━" * 80)
-    print("  BROADCAST TEST RESULTS")
+    print("  BROADCAST TEST RESULTS (MCP Store)")
     print("━" * 80)
-    print(f"\nBroadcast sent to {total_roles} roles at {timestamp}")
+    print(f"\nBroadcast sent from {collector_role} to {expected_count} roles at {timestamp}")
     print(f"Test ID: {test_id}\n")
 
-    if received_count == total_roles:
-        print(f"✅ Responses received: {received_count}/{total_roles} (100%)\n")
+    if received_count == expected_count:
+        print(f"✅ Responses received: {received_count}/{expected_count} (100%)\n")
     elif received_count > 0:
-        print(f"⚠️  Responses received: {received_count}/{total_roles} ({percentage:.0f}%)\n")
+        print(f"⚠️  Responses received: {received_count}/{expected_count} ({percentage:.0f}%)\n")
     else:
-        print(f"❌ No responses received (0/{total_roles})\n")
+        print(f"❌ No responses received (0/{expected_count})\n")
 
     # Display table
-    print("┌─────────────────┬──────────────┬──────────┬─────────┐")
-    print("│ Role            │ Gate Stage   │ Inbox    │ Outbox  │")
-    print("├─────────────────┼──────────────┼──────────┼─────────┤")
+    print("┌─────────────────┬────────────────────────────────────────────────┬──────────────┐")
+    print("│ Role            │ Status                                          │ Response Time│")
+    print("├─────────────────┼────────────────────────────────────────────────┼──────────────┤")
 
     for role in ALL_ROLES:
+        # Skip the collector role in the results table
+        if role == collector_role:
+            continue
+
         if role in responses:
             resp = responses[role]
             role_display = role.ljust(15)
-            gate_display = resp["gate"][:12].ljust(12)
-            inbox_display = resp["inbox_count"][:8].ljust(8)
-            outbox_display = resp["outbox_count"][:7].ljust(7)
-            print(f"│ {role_display} │ {gate_display} │ {inbox_display} │ {outbox_display} │")
+            status_display = resp["status"][:46].ljust(46)
+            # Calculate rough response time
+            resp_time = "< 10s"
+            print(f"│ {role_display} │ {status_display} │ {resp_time.ljust(12)} │")
         else:
             role_display = role.ljust(15)
-            print(f"│ {role_display} │ NO RESPONSE  │ -        │ -       │")
+            print(f"│ {role_display} │ NO RESPONSE                                    │ -            │")
 
-    # Add orchestrator row
-    print("│ orchestrator    │ N/A          │ " + f"{received_count}".ljust(8) + " │ 0       │")
-    print("└─────────────────┴──────────────┴──────────┴─────────┘")
+    print("└─────────────────┴────────────────────────────────────────────────┴──────────────┘")
 
     # Health status
     print()
-    if received_count == total_roles:
-        print("✅ Message passing infrastructure: HEALTHY")
-    elif received_count > total_roles * 0.8:
+    if received_count == expected_count:
+        print("✅ Message passing infrastructure (MCP Store): HEALTHY")
+        print(f"✅ Inbox watchers: OPERATIONAL (all {len(ALL_ROLES)} roles)")
+        print("✅ Autonomous messaging: WORKING")
+    elif received_count > expected_count * 0.8:
         print("⚠️  Message passing infrastructure: DEGRADED")
-        print(f"   Missing responses from: {', '.join([r for r in ALL_ROLES if r not in responses])}")
+        missing = [r for r in ALL_ROLES if r not in responses and r != collector_role]
+        print(f"   Missing responses from: {', '.join(missing)}")
     else:
         print("❌ Message passing infrastructure: UNHEALTHY")
-        print(f"   Missing responses from: {', '.join([r for r in ALL_ROLES if r not in responses])}")
+        missing = [r for r in ALL_ROLES if r not in responses and r != collector_role]
+        print(f"   Missing responses from {len(missing)} roles:")
+        for role in missing:
+            print(f"     - {role}")
 
     print()
 
 
-def cleanup_test_messages(message_board: Path, test_id: str):
-    """Clean up broadcast test messages after test completes."""
-    # Remove broadcast requests from all role inboxes
-    for role in ALL_ROLES:
-        inbox_path = message_board / role / "inbox"
-        test_file = inbox_path / f"broadcast-test-{test_id}.md"
-        if test_file.exists():
-            test_file.unlink()
+def mark_responses_read(responses: Dict[str, Dict]):
+    """Mark all broadcast test response messages as read."""
+    messages_file = get_mcp_messages_file()
 
-    # Remove responses from orchestrator inbox
-    inbox_path = message_board / "orchestrator" / "inbox"
-    for response_file in inbox_path.glob(f"broadcast-response-*-{test_id}.md"):
-        response_file.unlink()
+    try:
+        with open(messages_file, 'r') as f:
+            all_messages = json.load(f)
+
+        # Mark orchestrator's messages as read
+        orchestrator_inbox = all_messages.get("orchestrator", [])
+        for msg in orchestrator_inbox:
+            msg_id = msg.get('id')
+            from_role = msg.get('from_role')
+
+            if from_role in responses and responses[from_role].get('message_id') == msg_id:
+                msg['read'] = True
+
+        # Write back
+        with open(messages_file, 'w') as f:
+            json.dump(all_messages, f, indent=2)
+
+        print("🗑️  Test response messages marked as read")
+
+    except Exception as e:
+        print(f"⚠️  Failed to mark messages as read: {e}", file=sys.stderr)
 
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Broadcast test for Claude instances")
+    parser = argparse.ArgumentParser(description="Broadcast test for Claude instances via MCP store")
     parser.add_argument(
         "--timeout",
         type=int,
-        default=5,
-        help="Timeout in seconds to wait for responses (default: 5)",
-    )
-    parser.add_argument(
-        "--worktree",
-        type=str,
-        help="Path to worktree (default: auto-detect)",
+        default=10,
+        help="Timeout in seconds to wait for responses (default: 10)",
     )
     parser.add_argument(
         "--no-cleanup",
         action="store_true",
-        help="Don't clean up test messages after completion",
+        help="Don't mark test messages as read after completion",
     )
 
     args = parser.parse_args()
 
-    # Get worktree path
-    if args.worktree:
-        worktree = Path(args.worktree)
-    else:
-        worktree = get_worktree_path()
-
-    print(f"Using worktree: {worktree}")
-
-    message_board = get_message_board_path(worktree)
-
-    if not message_board.exists():
-        print(f"❌ Message board not found at: {message_board}", file=sys.stderr)
-        print("   Run this from a feature worktree or set WORKTREE_PATH", file=sys.stderr)
-        sys.exit(1)
-
     # Generate test ID and timestamp
+    import uuid
     test_id = str(uuid.uuid4())[:8]
     timestamp = get_timestamp()
 
+    collector_role = "orchestrator"
+    expected_recipients = len(ALL_ROLES) - 1  # Exclude collector
+
     print(f"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print(f"  BROADCASTING TEST TO {len(ALL_ROLES)} ROLES")
+    print(f"  BROADCASTING TEST TO {expected_recipients} ROLES (MCP STORE)")
+    print(f"  Total instances: {len(ALL_ROLES)} (including {collector_role})")
     print(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n")
 
-    # Send broadcast
-    sent_count = send_broadcast(message_board, test_id, timestamp)
-    print(f"\nSent {sent_count}/{len(ALL_ROLES)} broadcast messages")
+    # Send broadcast via MCP store
+    sent_count = send_broadcast_via_mcp(test_id, timestamp, collector_role)
+    print(f"\nSent {sent_count}/{expected_recipients} broadcast messages via MCP store")
 
-    # Collect responses
-    responses = collect_responses(message_board, test_id, args.timeout)
+    if sent_count == 0:
+        print("\n❌ Failed to send any messages. Check that direct_broadcast.py is available.")
+        sys.exit(2)
+
+    # Collect responses from MCP store
+    responses = collect_responses_from_mcp(test_id, args.timeout, collector_role)
 
     # Display results
-    display_results(responses, test_id, timestamp)
+    display_results(responses, test_id, timestamp, collector_role)
 
     # Cleanup
     if not args.no_cleanup:
-        cleanup_test_messages(message_board, test_id)
-        print("🗑️  Test messages cleaned up")
+        mark_responses_read(responses)
 
     # Exit code based on success rate
-    if len(responses) == len(ALL_ROLES):
+    expected_responses = len(ALL_ROLES) - 1  # Exclude collector
+    if len(responses) == expected_responses:
         sys.exit(0)  # Success
     elif len(responses) > 0:
         sys.exit(1)  # Partial success

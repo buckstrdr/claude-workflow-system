@@ -5,13 +5,32 @@ roles:
       - shared/quality_gates.md
       - shared/write_coordination.md
       - shared/message_protocol.md
+      - shared/workflow_examples.md
     max_tokens: 8000
 
   librarian:
     system_comps:
       - core/librarian_identity.md
       - shared/message_protocol.md
+      - shared/workflow_examples.md
     max_tokens: 6000
+
+  planner:
+    system_comps:
+      - core/planner_identity.md
+      - shared/quality_gates.md
+      - shared/message_protocol.md
+      - shared/workflow_examples.md
+    max_tokens: 7000
+
+  architect:
+    system_comps:
+      - core/architect_identity.md
+      - shared/quality_gates.md
+      - shared/write_coordination.md
+      - shared/message_protocol.md
+      - shared/workflow_examples.md
+    max_tokens: 8000
 
   dev:
     system_comps:
@@ -19,6 +38,7 @@ roles:
       - shared/write_coordination.md
       - shared/message_protocol.md
       - shared/quality_gates.md
+      - shared/workflow_examples.md
     max_tokens: 7500
 
   qa:
@@ -26,6 +46,7 @@ roles:
       - core/qa_identity.md
       - shared/quality_gates.md
       - shared/message_protocol.md
+      - shared/workflow_examples.md
     max_tokens: 7000
 
   docs:
@@ -34,4 +55,5 @@ roles:
       - shared/write_coordination.md
       - shared/message_protocol.md
       - shared/quality_gates.md
+      - shared/workflow_examples.md
     max_tokens: 7000

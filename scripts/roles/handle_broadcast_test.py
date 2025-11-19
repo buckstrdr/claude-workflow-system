@@ -1,27 +1,26 @@
 #!/usr/bin/env python3
 """
-Broadcast Test Response Handler
+Broadcast Test Response Handler - MCP Store Version
 
-Automatically responds to broadcast test requests from Orchestrator.
-
-This script is called by the sessionStart hook to check for pending broadcast tests.
-Each role instance runs this to respond to Orchestrator's broadcast.
+Automatically responds to broadcast test requests from Orchestrator using the MCP message store.
 
 Usage:
     python handle_broadcast_test.py --role ROLE_NAME [--worktree PATH]
-
-Environment Variables:
-    ROLE_NAME: Name of this Claude instance's role
-    WORKTREE_PATH: Path to feature worktree
-    QUALITY_GATE_STAGE: Current quality gate stage (optional)
 """
 
 import argparse
+import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Optional, List, Dict
+
+
+def get_mcp_messages_file() -> Path:
+    """Get path to MCP message store."""
+    return Path.home() / ".claude-messaging" / "messages.json"
 
 
 def get_timestamp() -> str:
@@ -29,124 +28,120 @@ def get_timestamp() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def get_worktree_path() -> Path:
-    """Get worktree path from environment or current directory."""
-    if worktree_env := os.getenv("WORKTREE_PATH"):
-        return Path(worktree_env)
-
-    cwd = Path.cwd()
-    if cwd.name.startswith("wt-feature-"):
-        return cwd
-
-    return cwd
-
-
-def get_role_name() -> Optional[str]:
-    """Get role name from environment."""
-    return os.getenv("ROLE_NAME")
-
-
 def get_quality_gate() -> str:
     """Get current quality gate stage."""
     return os.getenv("QUALITY_GATE_STAGE", "UNKNOWN")
 
 
-def count_messages(role_path: Path, box: str) -> int:
-    """Count messages in inbox or outbox."""
-    box_path = role_path / box
-    if not box_path.exists():
-        return 0
-    return len(list(box_path.glob("*.md")))
+def find_broadcast_tests(role: str) -> List[Dict]:
+    """Find unread broadcast test messages for role from MCP message store."""
+    messages_file = get_mcp_messages_file()
 
+    if not messages_file.exists():
+        return []
 
-def parse_broadcast_request(request_file: Path) -> Optional[Dict[str, str]]:
-    """
-    Parse broadcast test request message.
-
-    Returns:
-        Dict with test_id, timestamp, from
-        None if parsing fails
-    """
     try:
-        content = request_file.read_text()
+        with open(messages_file, 'r') as f:
+            all_messages = json.load(f)
 
-        # Extract frontmatter
-        test_id = None
-        timestamp = None
-        from_role = None
+        # Get messages for this role
+        role_messages = all_messages.get(role, [])
 
-        in_frontmatter = False
-        for line in content.split("\n"):
-            line = line.strip()
-
-            if line == "---":
-                if not in_frontmatter:
-                    in_frontmatter = True
-                else:
-                    break  # End of frontmatter
+        # Filter for unread broadcast messages about "Broadcast Test" or similar
+        broadcast_tests = []
+        for msg in role_messages:
+            if msg.get('read', False):
                 continue
 
-            if in_frontmatter:
-                if line.startswith("test_id:"):
-                    test_id = line.split("test_id:")[1].strip()
-                elif line.startswith("timestamp:"):
-                    timestamp = line.split("timestamp:")[1].strip()
-                elif line.startswith("from:"):
-                    from_role = line.split("from:")[1].strip()
+            subject = msg.get('subject', '').lower()
+            content = msg.get('content', '').lower()
 
-        if test_id and from_role == "orchestrator":
-            return {
-                "test_id": test_id,
-                "timestamp": timestamp or "unknown",
-                "from": from_role,
-            }
+            # Look for broadcast test indicators
+            if ('broadcast' in subject or 'broadcast' in content) and \
+               ('test' in subject or 'test' in content) and \
+               msg.get('from_role') == 'orchestrator':
+                broadcast_tests.append(msg)
 
-        return None
+        return sorted(broadcast_tests, key=lambda m: m.get('timestamp', ''))
     except Exception as e:
-        print(f"Failed to parse broadcast request: {e}", file=sys.stderr)
-        return None
+        print(f"❌ Failed to read MCP message store: {e}", file=sys.stderr)
+        return []
 
 
-def create_response_message(
-    role: str,
-    test_id: str,
-    request_timestamp: str,
-    gate_stage: str,
-    inbox_count: int,
-    outbox_count: int,
-) -> str:
-    """Create broadcast response message."""
+def mark_message_read(role: str, message_id: str) -> bool:
+    """Mark a message as read in the MCP store."""
+    messages_file = get_mcp_messages_file()
+
+    try:
+        with open(messages_file, 'r') as f:
+            all_messages = json.load(f)
+
+        # Find and mark the message as read
+        role_messages = all_messages.get(role, [])
+        for msg in role_messages:
+            if msg['id'] == message_id:
+                msg['read'] = True
+                break
+
+        # Write back
+        with open(messages_file, 'w') as f:
+            json.dump(all_messages, f, indent=2)
+
+        return True
+    except Exception as e:
+        print(f"❌ Failed to mark message as read: {e}", file=sys.stderr)
+        return False
+
+
+def send_response(role: str, to_role: str, subject: str, content: str, worktree: Path) -> bool:
+    """Send broadcast response using direct_broadcast.py."""
+    script_path = worktree / "scripts" / "messaging" / "direct_broadcast.py"
+
+    if not script_path.exists():
+        print(f"❌ direct_broadcast.py not found at {script_path}", file=sys.stderr)
+        return False
+
+    try:
+        result = subprocess.run(
+            [
+                "python3",
+                str(script_path),
+                "send",
+                role,
+                to_role,
+                subject,
+                content
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+
+        if result.returncode == 0:
+            return True
+        else:
+            print(f"❌ Failed to send response: {result.stderr}", file=sys.stderr)
+            return False
+    except Exception as e:
+        print(f"❌ Failed to send response: {e}", file=sys.stderr)
+        return False
+
+
+def create_response_content(role: str, gate_stage: str, test_id: str) -> str:
+    """Create broadcast response content."""
     response_timestamp = get_timestamp()
 
-    return f"""---
-type: broadcast-response
-from: {role}
-to: orchestrator
-timestamp: {response_timestamp}
-test_id: {test_id}
----
-
-# Broadcast Test Response
+    return f"""# Broadcast Test Response
 
 **Role:** {role}
 **Quality Gate:** {gate_stage}
-**Inbox Count:** {inbox_count}
-**Outbox Count:** {outbox_count}
 **Status:** Operational
-**Received At:** {request_timestamp}
 **Responding At:** {response_timestamp}
-
----
-
-This is an automated response to the broadcast test request.
-
 **Test ID:** `{test_id}`
 
-All systems operational. Message passing infrastructure confirmed working.
+All systems operational. Message passing via MCP store confirmed working.
 
----
-
-**End of Broadcast Test Response**
+This is an automated response to the broadcast test request.
 """
 
 
@@ -157,53 +152,35 @@ def handle_broadcast_tests(role: str, worktree: Path) -> int:
     Returns:
         Number of broadcast tests handled
     """
-    message_board = worktree / "messages"
-    role_inbox = message_board / role / "inbox"
-    orchestrator_inbox = message_board / "orchestrator" / "inbox"
+    # Find broadcast test messages
+    broadcast_tests = find_broadcast_tests(role)
 
-    if not role_inbox.exists():
-        return 0
-
-    # Find all broadcast test requests
-    broadcast_requests = list(role_inbox.glob("broadcast-test-*.md"))
-
-    if not broadcast_requests:
+    if not broadcast_tests:
         return 0
 
     # Get current stats
     gate_stage = get_quality_gate()
-    inbox_count = count_messages(message_board / role, "inbox")
-    outbox_count = count_messages(message_board / role, "outbox")
-
     handled_count = 0
 
-    for request_file in broadcast_requests:
-        request_data = parse_broadcast_request(request_file)
-
-        if not request_data:
-            continue
-
-        test_id = request_data["test_id"]
-        request_timestamp = request_data["timestamp"]
+    for msg in broadcast_tests:
+        msg_id = msg['id']
+        from_role = msg.get('from_role', 'orchestrator')
+        test_id = msg_id  # Use message ID as test ID
 
         # Create response
-        response_content = create_response_message(
-            role, test_id, request_timestamp, gate_stage, inbox_count, outbox_count
-        )
+        response_content = create_response_content(role, gate_stage, test_id)
+        response_subject = f"Broadcast Test Response from {role}"
 
-        # Write response to orchestrator's inbox
-        orchestrator_inbox.mkdir(parents=True, exist_ok=True)
-        response_file = orchestrator_inbox / f"broadcast-response-{role}-{test_id}.md"
-
-        try:
-            response_file.write_text(response_content)
-            handled_count += 1
-            print(f"✓ Responded to broadcast test {test_id}")
-
-            # Remove the request from our inbox (it's been handled)
-            request_file.unlink()
-        except Exception as e:
-            print(f"✗ Failed to respond to broadcast test: {e}", file=sys.stderr)
+        # Send response back to sender (usually orchestrator)
+        if send_response(role, from_role, response_subject, response_content, worktree):
+            # Mark original message as read
+            if mark_message_read(role, msg_id):
+                handled_count += 1
+                print(f"✓ Responded to broadcast test {test_id}")
+            else:
+                print(f"⚠️  Sent response but failed to mark message as read", file=sys.stderr)
+        else:
+            print(f"✗ Failed to respond to broadcast test {msg_id}", file=sys.stderr)
 
     return handled_count
 
@@ -211,7 +188,7 @@ def handle_broadcast_tests(role: str, worktree: Path) -> int:
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
-        description="Handle broadcast test requests for a Claude role instance"
+        description="Handle broadcast test requests from MCP message store"
     )
     parser.add_argument(
         "--role",
@@ -221,13 +198,13 @@ def main():
     parser.add_argument(
         "--worktree",
         type=str,
-        help="Path to worktree (default: auto-detect)",
+        help="Path to worktree",
     )
 
     args = parser.parse_args()
 
     # Get role name
-    role = args.role or get_role_name()
+    role = args.role or os.getenv("ROLE_NAME")
     if not role:
         print("❌ Role name required (--role or ROLE_NAME env var)", file=sys.stderr)
         sys.exit(1)
@@ -236,7 +213,7 @@ def main():
     if args.worktree:
         worktree = Path(args.worktree)
     else:
-        worktree = get_worktree_path()
+        worktree = Path.cwd()
 
     # Handle broadcast tests
     handled = handle_broadcast_tests(role, worktree)
